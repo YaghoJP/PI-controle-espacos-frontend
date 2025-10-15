@@ -34,8 +34,8 @@ export default function Navbar() {
       <div className="w-full md:w-auto order-3 md:order-2 mt-3 md:mt-0">
         <div className="flex items-center justify-around md:justify-center gap-2">
           <NavLink href="/dashboard" isActive>Espaços</NavLink>
-          <NavLink href="/minhas-reservas">Minhas Reservas</NavLink>
-          <NavLink href="/configuracoes">Configurações</NavLink>
+          <NavLink href="/minhas">Minhas Reservas</NavLink>
+          <NavLink href="/CreateSpace">Criar Espaço</NavLink>
         </div>
       </div>
       
