@@ -2,6 +2,11 @@ import { useRouter } from 'next/navigation';
 
 interface ButtonsProps {
   onSubmit: () => void;
+import { on } from "events";
+
+interface ButtonsProps{
+    onChangeBack: ()=> void;
+    onSubmit: ()=> void;
 }
 
 export function Buttons({ onSubmit }: ButtonsProps) {
@@ -17,6 +22,8 @@ export function Buttons({ onSubmit }: ButtonsProps) {
       <button
         type="button" 
         onClick={handleGoHome} 
+        type="submit"
+        onClick={onChangeBack}
         className="bg-gray-500 text-white px-4 py-2 rounded w-50/100 disabled:opacity-50"
       >
         Voltar
@@ -24,6 +31,8 @@ export function Buttons({ onSubmit }: ButtonsProps) {
       <button
         type="submit" 
         onClick={onSubmit} 
+        onClick={onSubmit}
+        type="submit"
         className="bg-blue-500 text-white px-4 py-2 rounded w-50/100 disabled:opacity-50"
       >
         Criar Conta

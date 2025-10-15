@@ -36,6 +36,9 @@ export default function Navbar() {
           <NavLink href="/Dashboard" isActive>Espaços</NavLink>
           <NavLink href="/minhas-reservas">Minhas Reservas</NavLink>
           <NavLink href="/configuracoes">Configurações</NavLink>
+          <NavLink href="/dashboard" isActive>Espaços</NavLink>
+          <NavLink href="/minhas">Minhas Reservas</NavLink>
+          <NavLink href="/CreateSpace">Criar Espaço</NavLink>
         </div>
       </div>
       
