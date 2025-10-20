@@ -1,39 +1,34 @@
+// ✅ Importações devem estar sempre no topo
 import { useRouter } from 'next/navigation'; 
 
+// ✅ Interface unificada
 interface ButtonsProps {
   onSubmit: () => void;
-import { on } from "events";
-
-interface ButtonsProps{
-    onChangeBack: ()=> void;
-    onSubmit: ()=> void;
+  onChangeBack: () => void;
 }
 
-export function Buttons({ onSubmit }: ButtonsProps) {
-
+export function Buttons({ onSubmit, onChangeBack }: ButtonsProps) {
   const router = useRouter();
 
   const handleGoHome = () => {
     router.push('/Home');
+    onChangeBack(); // você pode decidir se quer chamar isso aqui ou deixar só no botão
   };
 
   return (
     <div className="mb-6 col-span-2 flex gap-4">
       <button
-        type="button" 
-        onClick={handleGoHome} 
-        type="submit"
+        type="button"
         onClick={onChangeBack}
-        className="bg-gray-500 text-white px-4 py-2 rounded w-50/100 disabled:opacity-50"
+        className="bg-gray-500 text-white px-4 py-2 rounded w-1/2 disabled:opacity-50"
       >
         Voltar
       </button>
+
       <button
-        type="submit" 
-        onClick={onSubmit} 
-        onClick={onSubmit}
         type="submit"
-        className="bg-blue-500 text-white px-4 py-2 rounded w-50/100 disabled:opacity-50"
+        onClick={onSubmit}
+        className="bg-blue-500 text-white px-4 py-2 rounded w-1/2 disabled:opacity-50"
       >
         Criar Conta
       </button>
