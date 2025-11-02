@@ -2,11 +2,12 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation"; 
+import LoginModal from "../Componets/LoginModal";
 
 export default function HomePage() {
   const router = useRouter();
   const [isScrolled, setIsScrolled] = useState(false);
-
+  const [isModalOpen, setIsModalOpen] = useState(false);
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
@@ -20,11 +21,7 @@ export default function HomePage() {
   }, []);
 
   const handleLogin = () => {
-    router.push('/TelaLogin');
-  };
-
-  const handleSignup = () => {
-    router.push('/TelaCadastro');
+    setIsModalOpen(true);
   };
 
   const handleDemoRedirect = () => {
@@ -55,7 +52,6 @@ export default function HomePage() {
           {}
           <div className="nav-actions">
             <button className="btn-login" onClick={handleLogin}>Entrar</button>
-            <button className="btn-signup" onClick={handleSignup}>Criar Conta</button>
           </div>
         </div>
       </nav>
@@ -174,7 +170,6 @@ export default function HomePage() {
             </p>
             <div className="cta-buttons">
               {}
-              <button className="btn-cta-primary" onClick={handleSignup}>Criar Conta Gratuita</button>
               <button className="btn-cta-secondary" onClick={handleDemoRedirect}>Ver Todos os Espaços</button>
             </div>
           </div>
@@ -204,11 +199,13 @@ export default function HomePage() {
           </div>
 
           <div className="footer-copyright">
-            © 2025 reservaCM. Todos os direitos reservados.
+            © 2025 reservaCM. Todos os direitos reservados a Viczinha, Mineirin, Jota e Yagho CLT.
           </div>
         </div>
       </footer>
-
+      <div className="modal-container">
+        <LoginModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+      </div>
       {}
       <style jsx>{`
         * {
@@ -222,7 +219,12 @@ export default function HomePage() {
             background: white;
             overflow-x: hidden;
         }
-        
+
+        .modal-container {
+          position: relative;
+          z-index: 1050; /* Valor maior que os 1000 da .navbar */
+        }
+
         .navbar {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
