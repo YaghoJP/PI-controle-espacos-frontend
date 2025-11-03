@@ -118,7 +118,7 @@ export default function CreateSpacePage() {
               required
             />
           </div>
-        </div>
+        </form>
         
         <div className="flex items-center gap-3">
           <button
@@ -178,7 +178,7 @@ export default function CreateSpacePage() {
 
           {error && <p className="text-sm text-red-600">{error}</p>}
           {success && <p className="text-sm text-green-600">{success}</p>}
-        </form>
+        </div>
       </div>
     </>
   );
