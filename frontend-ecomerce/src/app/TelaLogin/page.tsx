@@ -2,20 +2,36 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import HearderCreate from "../Componets/Header";
-
 
 import { useRouter } from "next/navigation";
+import {handlerLogin} from "../Service/service"
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); 
+
   const router = useRouter();
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setIsLoading(true)
-    router.push("/Dashboard");
+    setIsLoading(true);
+     const handler= await handlerLogin(email,password);
+     if(handler===null){
+      alert("Credenciais inválidas. Tente novamente.");
+      setIsLoading(false);
+      return;
+     }
+      localStorage.setItem("token",handler.token);
+     localStorage.setItem("role",handler.role);
+     localStorage.setItem("user_id",handler.id);
+
+    if (handler.role ==="ASSOCIADO"){
+      router.push("/Dashboard");
+    }else{
+      router.push("/DashboardAdmin");
+    }
+    
+    
   };
 
   return (
@@ -53,7 +69,10 @@ export default function LoginPage() {
         {/* Formulário */}
         <form onSubmit={handleSubmit}>
           <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="email">
+            <label
+              className="block text-sm font-medium text-gray-700 mb-2"
+              htmlFor="email"
+            >
               E-mail
             </label>
             <input
@@ -68,7 +87,10 @@ export default function LoginPage() {
           </div>
 
           <div className="mb-6 relative">
-            <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="password">
+            <label
+              className="block text-sm font-medium text-gray-700 mb-2"
+              htmlFor="password"
+            >
               Senha
             </label>
             <input
@@ -141,19 +163,12 @@ export default function LoginPage() {
               Esqueci minha senha
             </Link>
           </div>
-
+          
           <div className="flex items-center my-6">
             <div className="flex-grow border-t border-gray-200"></div>
             <span className="mx-4 text-sm text-gray-400">ou</span>
             <div className="flex-grow border-t border-gray-200"></div>
           </div>
-
-          <Link
-            href="/TelaCadastro"
-            className="block w-full text-center bg-gray-50 border-2 border-gray-200 text-gray-700 p-3.5 rounded-xl font-semibold hover:border-green-700 hover:text-green-700 hover:bg-green-50"
-          >
-            Criar nova conta
-          </Link>
         </form>
       </div>
     </div>

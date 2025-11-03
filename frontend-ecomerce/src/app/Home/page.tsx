@@ -199,7 +199,7 @@ export default function HomePage() {
           </div>
 
           <div className="footer-copyright">
-            © 2025 reservaCM. Todos os direitos reservados a Viczinha, Mineirin, Jota e Yagho CLT.
+            © 2025 reservaCM. Todos os direitos reservados.
           </div>
         </div>
       </footer>
