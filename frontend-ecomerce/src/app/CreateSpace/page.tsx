@@ -118,6 +118,16 @@ export default function CreateSpacePage() {
               required
             />
           </div>
+        </div>
+        
+        <div className="flex items-center gap-3">
+          <button
+            type="submit"
+            className="px-4 py-2 rounded-2xl shadow-md bg-gradient-to-r from-blue-500 to-indigo-500 text-white disabled:opacity-60"
+            disabled={loading}
+          >
+            {loading ? "Salvando..." : "Criar Espaço"}
+          </button>
 
           <div>
             <div>

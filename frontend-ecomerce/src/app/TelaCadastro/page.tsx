@@ -8,6 +8,7 @@ import { InputPassword } from "../Componets/InputPassword";
 import { handlerCreateUser } from "../Service/service";
 import { useRouter } from "next/navigation";
 import React from "react";
+import NavbarAdmin from "../Componets/NavbarAdmin";
 
 export default function Cadastro() {
   const router = useRouter();
@@ -58,60 +59,66 @@ export default function Cadastro() {
     role: "ASSOCIADO",
   });
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-100">
-      <form
-        onSubmit={undefined}
-        className="bg-white p-8 rounded-lg shadow-md w-full max-w-md"
+    <>
+      <NavbarAdmin />
+      <div
+        className="flex justify-center items-center min-h-screen bg-gray-100"
+        style={{ backgroundColor: "black" }}
       >
-        <HearderCreate />
-        {/* Informações Pessoais */}
-        <div className="mb-10">
-          <h3 className="font-semibold mb-2" style={{ color: "black" }}>
-            Informações Pessoais
-          </h3>
-          <div className="flex flex-col">
-            <label style={{ color: "black" }}>Nome</label>
-            <input
-              style={{ color: "black" }}
-              type="text"
-              name="nome"
-              placeholder="Seu nome"
-              value={formData.name}
-              onChange={(e) =>
-                setFormData({ ...formData, name: e.target.value })
-              }
-              className="border rounded px-3 py-2 w-full h-fu"
-              required
-            />
-          </div>
+        <form
+          onSubmit={undefined}
+          className="bg-white p-8 rounded-lg shadow-md w-full max-w-md"
+        >
+          <HearderCreate />
+          {/* Informações Pessoais */}
+          <div className="mb-10">
+            <h3 className="font-semibold mb-2" style={{ color: "black" }}>
+              Informações Pessoais
+            </h3>
+            <div className="flex flex-col">
+              <label style={{ color: "black" }}>Nome</label>
+              <input
+                style={{ color: "black" }}
+                type="text"
+                name="nome"
+                placeholder="Seu nome"
+                value={formData.name}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
+                className="border rounded px-3 py-2 w-full h-fu"
+                required
+              />
+            </div>
 
-          <InputTextEmail
-            value={formData.email}
-            setChange={(e) =>
-              setFormData({ ...formData, email: e.target.value })
-            }
-          />
-          <div className="flex flex-row gap-4 mt-4">
-            <InputPassword
-              value={formData.password}
-              labelvalue="Senha"
-              onChange={(e) =>
-                setFormData({ ...formData, password: e.target.value })
+            <InputTextEmail
+              value={formData.email}
+              setChange={(e) =>
+                setFormData({ ...formData, email: e.target.value })
               }
             />
-            <InputPassword
-              value={formData.confirmpassword}
-              labelvalue="Confirmar Senha"
-              onChange={(e) =>
-                setFormData({ ...formData, confirmpassword: e.target.value })
-              }
-            />
+            <div className="flex flex-row gap-4 mt-4">
+              <InputPassword
+                value={formData.password}
+                labelvalue="Senha"
+                onChange={(e) =>
+                  setFormData({ ...formData, password: e.target.value })
+                }
+              />
+              <InputPassword
+                value={formData.confirmpassword}
+                labelvalue="Confirmar Senha"
+                onChange={(e) =>
+                  setFormData({ ...formData, confirmpassword: e.target.value })
+                }
+              />
+            </div>
           </div>
-        </div>
-        {/* Termos de Serviço e Botões */}
-        <TermsOfService />
-        <Buttons onChangeBack={handlerBack} onSubmit={handleSubmit} />
-      </form>
-    </div>
+          {/* Termos de Serviço e Botões */}
+          <TermsOfService />
+          <Buttons onChangeBack={handlerBack} onSubmit={handleSubmit} />
+        </form>
+      </div>
+    </>
   );
 }

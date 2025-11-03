@@ -1,6 +1,9 @@
 import Image from "next/image";
+import {} from "../Componets/PopUpReserva"
 import { Users, X } from "lucide-react"; // importando o X
+import {handlerDeleteSpace} from "../Service/service"
 import React from "react";
+import { on } from "events";
 
 export interface Space {
   id: number;
@@ -13,9 +16,11 @@ export interface Space {
 interface SpaceCardProps {
   space: Space;
   onDelete?: (id: number) => void; // função opcional para deletar
+  onReservation?: () => void; // função opcional para reservar
 }
 
-const SpaceCard: React.FC<SpaceCardProps> = ({ space, onDelete }) => {
+const SpaceCard: React.FC<SpaceCardProps> = ({ space, onReservation,onDelete }) => {
+  
   const handleCardClick = () =>
     alert(`Demo: Abrindo detalhes de ${space.name}...`);
     
@@ -26,13 +31,13 @@ const SpaceCard: React.FC<SpaceCardProps> = ({ space, onDelete }) => {
   
   const handleReserveClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
-    alert(`Demo: Abrindo página de reserva para ${space.name}...`);
+    
   };
 
   const handleDeleteClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
     if (onDelete) {
-      onDelete(space.id);
+      handlerDeleteSpace(space.id);
     } else {
       alert(`Demo: Deletando ${space.name}...`);
     }
@@ -95,7 +100,7 @@ const SpaceCard: React.FC<SpaceCardProps> = ({ space, onDelete }) => {
             Detalhes
           </button>
           <button
-            onClick={handleReserveClick}
+            onClick={onReservation}
             className="flex-2 py-3 bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-lg font-semibold text-sm transition-all hover:-translate-y-px hover:shadow-lg hover:shadow-blue-600/30"
           >
             Reservar
