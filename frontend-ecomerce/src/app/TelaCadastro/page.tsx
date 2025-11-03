@@ -13,7 +13,7 @@ import NavbarAdmin from "../Componets/NavbarAdmin";
 export default function Cadastro() {
   const router = useRouter();
   const handlerBack = () => {
-    router.push("/TelaLogin");
+    router.back();
   };
   const handleSubmit = () => {
     if (
