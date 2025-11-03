@@ -19,7 +19,7 @@ const NavLink: React.FC<NavLinkProps> = ({ href, children, isActive }) => (
   </Link>
 );
 
-export default function Navbar() {
+export default function NavbarAdmin() {
   return (
     <nav className="bg-background border-b border-slate-200 dark:border-slate-800 px-4 md:px-8 h-auto md:h-[72px] flex items-center justify-between sticky top-0 z-50 shadow-sm flex-wrap md:flex-nowrap py-3 md:py-0">
       <Link href="/dashboard" className="flex items-center gap-3">
@@ -33,11 +33,11 @@ export default function Navbar() {
 
       <div className="w-full md:w-auto order-3 md:order-2 mt-3 md:mt-0">
         <div className="flex items-center justify-around md:justify-center gap-2">
-          <NavLink href="/Dashboard" isActive>Espaços</NavLink>
-          <NavLink href="/minhas-reservas">Minhas Reservas</NavLink>
+           <NavLink href="/DashboardAdmin" >Espaços</NavLink>
+          <NavLink href="/TelaCadastro" >Cadastrar Usuários</NavLink>
+          <NavLink href="/ListUsers">Usuários do Sistema</NavLink>
           <NavLink href="/configuracoes">Configurações</NavLink>
-          <NavLink href="/dashboard" isActive>Espaços</NavLink>
-          <NavLink href="/minhas">Minhas Reservas</NavLink>
+          <NavLink href="/TelaReservas">Reservas</NavLink>
           <NavLink href="/CreateSpace">Criar Espaço</NavLink>
         </div>
       </div>
