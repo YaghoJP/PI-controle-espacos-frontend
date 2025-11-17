@@ -22,7 +22,7 @@ const NavLink: React.FC<NavLinkProps> = ({ href, children, isActive }) => (
 export default function NavbarAdmin() {
   return (
     <nav className="bg-background border-b border-slate-200 dark:border-slate-800 px-4 md:px-8 h-auto md:h-[72px] flex items-center justify-between sticky top-0 z-50 shadow-sm flex-wrap md:flex-nowrap py-3 md:py-0">
-      <Link href="/dashboard" className="flex items-center gap-3">
+      <Link href="/Dashboard" className="flex items-center gap-3">
         <div className="w-9 h-9 bg-gradient-to-br from-green-700 to-green-600 rounded-lg flex items-center justify-center">
           <span className="text-white font-bold">✓</span>
         </div>
