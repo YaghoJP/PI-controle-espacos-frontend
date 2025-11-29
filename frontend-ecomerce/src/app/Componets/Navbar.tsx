@@ -1,65 +1,102 @@
 // src/app/components/Navbar.tsx
-"use client"; // Necessário para hooks como usePathname e o dropdown
+"use client";
 
-import Link from 'next/link';
-import React from 'react';
-import { usePathname } from 'next/navigation'; // Importa o hook para detectar a rota
-import UserMenuDropdown from './UserMenuDropdown'; // <-- 1. Importa o novo componente de Dropdown
+import Link from "next/link";
+import React, { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
+import { API_BASE_URL } from "../Service/localhost";
+import UserMenuDropdown from "./UserMenuDropdown"; // <-- reinserido
 
-// Tipagem para as props do componente NavLink interno
-// Removemos 'isActive' pois o componente vai descobrir sozinho
 interface NavLinkProps {
   href: string;
   children: React.ReactNode;
 }
 
-// Este componente NavLink agora é inteligente
 const NavLink: React.FC<NavLinkProps> = ({ href, children }) => {
-  const pathname = usePathname(); // Pega a URL atual
-  // Compara a URL atual com o href do link.
-  // Usamos toLowerCase para garantir que /dashboard e /Dashboard sejam tratados da mesma forma
+  const pathname = usePathname() ?? "/";
   const isActive = pathname.toLowerCase() === href.toLowerCase();
 
   return (
-    <Link href={href} className={`py-2 px-4 rounded-lg text-sm font-medium transition-colors ${
-      isActive
-        ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/50 dark:text-blue-300' // Estilo ativo
-        : 'text-slate-500 hover:bg-slate-100 hover:text-blue-600 dark:hover:bg-slate-800' // Estilo inativo
-    }`}>
+    <Link
+      href={href}
+      className={`py-2 px-4 rounded-lg text-sm font-medium transition-colors ${
+        isActive
+          ? "bg-blue-50 text-blue-600"
+          : "text-slate-600 hover:bg-slate-100 hover:text-blue-600"
+      }`}
+    >
       {children}
     </Link>
   );
 };
 
-// Componente Navbar Principal
 export default function Navbar() {
+  const [userName, setUserName] = useState<string | null>(null);
+  const [initials, setInitials] = useState<string>("US");
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const token = localStorage.getItem("token");
+    const userId = localStorage.getItem("user_id");
+
+    if (!userId) return;
+
+    const loadUser = async () => {
+      try {
+        const headers: Record<string, string> = {
+          "Content-Type": "application/json",
+        };
+        if (token) headers["Authorization"] = `Bearer ${token}`;
+
+        const res = await fetch(`${API_BASE_URL}/users/${userId}`, {
+          method: "GET",
+          headers,
+        });
+
+        const data = await res.json();
+        const user = data?.data ?? data;
+
+        if (!user?.name) return;
+
+        setUserName(user.name);
+
+        const parts = user.name.split(" ");
+        const ini =
+          parts.length === 1
+            ? parts[0].slice(0, 2).toUpperCase()
+            : (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+
+        setInitials(ini);
+      } catch (err) {
+        console.error("Erro ao carregar usuário:", err);
+      }
+    };
+
+    loadUser();
+  }, []);
+
   return (
-    <nav className="bg-background border-b border-slate-200 dark:border-slate-800 px-4 md:px-8 h-auto md:h-[72px] flex items-center justify-between sticky top-0 z-50 shadow-sm flex-wrap md:flex-nowrap py-3 md:py-0">
+    <nav className="bg-white border-b border-slate-200 px-4 md:px-8 h-auto md:h-[72px] flex items-center justify-between sticky top-0 z-50 shadow-sm py-3">
       
-      {/* Brand (Logo) - Corrigido para /dashboard para consistência */}
+      {/* LOGO */}
       <Link href="/Dashboard" className="flex items-center gap-3">
         <div className="w-9 h-9 bg-gradient-to-br from-green-700 to-green-600 rounded-lg flex items-center justify-center">
           <span className="text-white font-bold">✓</span>
         </div>
-        <div className="text-xl font-bold text-green-800">
+        <div className="text-xl font-bold text-gray-900">
           reserva<span className="text-blue-600">CM</span>
         </div>
       </Link>
 
-      {/* Navegação Principal (Desktop) */}
-      {/* 2. Os links agora são dinâmicos e usam rotas em minúsculas (melhor prática) */}
-      <div className="hidden md:flex w-full md:w-auto order-3 md:order-2 mt-3 md:mt-0 justify-around md:justify-center gap-2">
+      {/* LINKS */}
+      <div className="hidden md:flex gap-2">
         <NavLink href="/Dashboard">Espaços</NavLink>
         <NavLink href="/Reserva">Minhas Reservas</NavLink>
       </div>
-      
-      {/* 3. O antigo div estático do usuário é substituído pelo componente interativo */}
-      <div className="order-2 md:order-3">
-        <UserMenuDropdown />
-      </div>
 
-      {/* Navegação (Mobile) - Oculta em desktop (hidden md:flex) e aparece em mobile (w-full order-3) */}
-      {/* Esta duplicata foi removida e unificada com a de cima para melhor layout mobile */}
+      {/* MENU DO USUÁRIO COM DROPDOWN */}
+      <UserMenuDropdown userName={userName} initials={initials} />
     </nav>
   );
 }

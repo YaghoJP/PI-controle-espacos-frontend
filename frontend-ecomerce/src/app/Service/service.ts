@@ -67,16 +67,35 @@ export async function handlerCreateUser(user: {
   password: string;
   role: string;
 }) {
-  const token = localStorage.getItem("token");
-  const res = await fetch(API_BASE_URL + "/user", {
-    method: "POST",
-    headers: {
-      headerAuthorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(user),
-  });
+  try {
 
-  const data = res.json();
-  console.log(data);
+
+    //const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+
+    const headers: Record<string,string> = {
+      "Content-Type": "application/json",
+    };
+
+    // só adicionar Authorization se houver token
+    //if (token) headers["Authorization"] = `Bearer ${token}`;
+
+    const res = await fetch(`${API_BASE_URL}/user`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(user),
+    });
+
+    const data = await res.json(); 
+
+    if (!res.ok) {
+      
+      throw new Error(data?.message ?? `Erro ${res.status}`);
+    }
+
+    console.log("create user response:", data);
+    return data; 
+  } catch (err: any) {
+    console.error("handlerCreateUser failed:", err);
+    throw err; 
+  }
 }

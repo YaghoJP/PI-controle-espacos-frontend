@@ -1,4 +1,4 @@
-"use client"; // isso faz o componente ser Client e aceitar handlers
+"use client";
 
 import HearderCreate from "../Componets/Header";
 import { Buttons } from "../Componets/Buttons";
@@ -12,39 +12,7 @@ import NavbarAdmin from "../Componets/NavbarAdmin";
 
 export default function Cadastro() {
   const router = useRouter();
-  const handlerBack = () => {
-    router.back();
-  };
-  const handleSubmit = () => {
-    if (
-      !formData.name ||
-      !formData.email ||
-      !formData.password ||
-      !formData.confirmpassword ||
-      formData.password.length < 6
-    ) {
-      alert("Por favor, preencha todos os campos corretamente.");
-      return;
-    } else if (formData.password !== formData.password) {
-      alert("As senhas não coincidem.");
-      return;
-    } else {
-      handlerCreateUser({
-        name: formData.name,
-        email: formData.email,
-        password: formData.password,
-        role: formData.role,
-      });
-      alert("Usuário cadastrado com sucesso!");
-      setFormData({
-        name: "",
-        email: "",
-        password: "",
-        confirmpassword: "",
-        role: "ASSOCIADO",
-      });
-    }
-  };
+  const [isLoading, setIsLoading] = React.useState(false);
   const [formData, setFormData] = React.useState<{
     name: string;
     email: string;
@@ -58,52 +26,95 @@ export default function Cadastro() {
     confirmpassword: "",
     role: "ASSOCIADO",
   });
+
+  const handlerBack = () => {
+    router.back();
+  };
+
+const handleSubmit = async (e?: React.FormEvent<HTMLFormElement>) => {
+  if (e) e.preventDefault();
+
+  if (
+    !formData.name ||
+    !formData.email ||
+    !formData.password ||
+    !formData.confirmpassword ||
+    formData.password.length < 6
+  ) {
+    alert("Por favor, preencha todos os campos corretamente (senha >= 6 caracteres).");
+    return;
+  }
+
+  if (formData.password !== formData.confirmpassword) {
+    alert("As senhas não coincidem.");
+    return;
+  }
+
+  setIsLoading(true);
+  try {
+    const result = await handlerCreateUser({
+      name: formData.name,
+      email: formData.email,
+      password: formData.password,
+      role: formData.role,
+    });
+
+    alert("Usuário cadastrado com sucesso!");
+
+    setFormData({
+      name: "",
+      email: "",
+      password: "",
+      confirmpassword: "",
+      role: "ASSOCIADO",
+    });
+
+    router.push("/TelaLogin");
+  } catch (err: any) {
+    const message = err?.message ?? "Erro ao cadastrar usuário. Verifique os dados e tente novamente.";
+    console.error("Erro ao criar usuário:", err);
+    alert(message);
+  } finally {
+    setIsLoading(false);
+  }
+};
+
   return (
     <>
       <NavbarAdmin />
-      <div
-        className="flex justify-center items-center min-h-screen bg-gray-100"
-        style={{ backgroundColor: "black" }}
-      >
+      <div className="flex justify-center items-center min-h-screen bg-gray-100">
         <form
-          onSubmit={undefined}
-          className="bg-white p-8 rounded-lg shadow-md w-full max-w-md"
+          onSubmit={handleSubmit}
+          className="bg-white rounded-2xl shadow-xl p-12 w-full max-w-md"
         >
           <HearderCreate />
-          {/* Informações Pessoais */}
+
           <div className="mb-10">
-            <h3 className="font-semibold mb-2" style={{ color: "black" }}>
-              Informações Pessoais
-            </h3>
-            <div className="flex flex-col">
-              <label style={{ color: "black" }}>Nome</label>
+            <h3 className="font-semibold mb-2 text-gray-900">Informações Pessoais</h3>
+
+            <div className="flex flex-col mb-4">
+              <label className="text-sm text-gray-700 mb-1">Nome</label>
               <input
-                style={{ color: "black" }}
                 type="text"
                 name="nome"
                 placeholder="Seu nome"
                 value={formData.name}
-                onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
-                }
-                className="border rounded px-3 py-2 w-full h-fu"
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                className="border border-gray-200 rounded px-3 py-2 w-full text-gray-900 placeholder-gray-600 bg-gray-50 focus:outline-none focus:border-blue-600 focus:bg-white"
                 required
               />
             </div>
 
             <InputTextEmail
               value={formData.email}
-              setChange={(e) =>
-                setFormData({ ...formData, email: e.target.value })
-              }
+              setChange={(e) => setFormData({ ...formData, email: e.target.value })}
             />
+
             <div className="flex flex-row gap-4 mt-4">
               <InputPassword
                 value={formData.password}
                 labelvalue="Senha"
-                onChange={(e) =>
-                  setFormData({ ...formData, password: e.target.value })
-                }
+                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
               />
               <InputPassword
                 value={formData.confirmpassword}
@@ -114,7 +125,7 @@ export default function Cadastro() {
               />
             </div>
           </div>
-          {/* Termos de Serviço e Botões */}
+
           <TermsOfService />
           <Buttons onChangeBack={handlerBack} onSubmit={handleSubmit} />
         </form>
