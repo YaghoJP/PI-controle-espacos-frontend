@@ -12,27 +12,49 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false); 
 
   const router = useRouter();
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setIsLoading(true);
-     const handler= await handlerLogin(email,password);
-     if(handler===null){
-      alert("Credenciais inválidas. Tente novamente.");
-      setIsLoading(false);
-      return;
-     }
-      localStorage.setItem("token",handler.token);
-     localStorage.setItem("role",handler.role);
-     localStorage.setItem("user_id",handler.id);
+const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  e.preventDefault();
+  setIsLoading(true);
 
-    if (handler.role ==="ASSOCIADO"){
-      router.push("/Dashboard");
-    }else{
-      router.push("/DashboardAdmin");
+  try {
+    const handler = await handlerLogin(email.trim(), password);
+    console.log("login response:", handler);
+
+    if (!handler || !handler.token) {
+      alert("Credenciais inválidas. Tente novamente.");
+      return;
     }
-    
-    
-  };
+
+    // normaliza valores
+    const roleRaw = String(handler.role ?? "").trim();
+    const role = roleRaw.toUpperCase();
+
+    // salva informações
+    localStorage.setItem("token", handler.token);
+    if (handler.role !== undefined && handler.role !== null) {
+      localStorage.setItem("role", String(handler.role));
+    }
+    if (handler.id !== undefined && handler.id !== null) {
+      localStorage.setItem("user_id", String(handler.id));
+    }
+
+    // redireciona com base na role normalizada
+    if (role === "ASSOCIADO") {
+      router.push("/Dashboard");
+    } else if (role === "ADMIN" || role === "ADMINISTRADOR" || role === "ADM") {
+      router.push("/DashboardAdmin");
+    } else {
+      // fallback: se não corresponde a nada esperado, use role originalmente retornada
+      console.warn("Role não mapeada:", handler.role);
+      router.push("/Dashboard");
+    }
+  } catch (err) {
+    console.error("Erro no login:", err);
+    alert("Erro ao conectar com o servidor. Tente novamente mais tarde.");
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
@@ -78,7 +100,10 @@ export default function LoginPage() {
             <input
               type="email"
               id="email"
-              className="w-full p-3.5 border-2 border-gray-200 rounded-xl bg-gray-50 focus:outline-none focus:border-blue-600 focus:bg-white focus:ring-4 focus:ring-blue-600/10"
+              className="w-full p-3.5 border-2 border-gray-200 rounded-xl bg-gray-50
+                        text-black placeholder-gray-700 
+                        focus:outline-none focus:border-blue-600 focus:bg-white 
+                        focus:ring-4 focus:ring-blue-600/10"
               placeholder="seu@email.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -96,12 +121,16 @@ export default function LoginPage() {
             <input
               type={showPassword ? "text" : "password"}
               id="password"
-              className="w-full p-3.5 border-2 border-gray-200 rounded-xl bg-gray-50 focus:outline-none focus:border-blue-600 focus:bg-white focus:ring-4 focus:ring-blue-600/10 pr-12"
+              className="w-full p-3.5 border-2 border-gray-200 rounded-xl bg-gray-50 
+                        text-black placeholder-gray-700
+                        focus:outline-none focus:border-blue-600 focus:bg-white 
+                        focus:ring-4 focus:ring-blue-600/10 pr-12"
               placeholder="Digite sua senha"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
             />
+
             {/* Botão de mostrar/ocultar senha */}
             <button
               type="button"
@@ -168,6 +197,14 @@ export default function LoginPage() {
             <div className="flex-grow border-t border-gray-200"></div>
             <span className="mx-4 text-sm text-gray-400">ou</span>
             <div className="flex-grow border-t border-gray-200"></div>
+          </div>
+          <div className="text-center mt-4">
+            <Link
+              href="/TelaCadastro"
+              className="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline"
+            >
+              Criar uma conta
+            </Link>
           </div>
         </form>
       </div>
