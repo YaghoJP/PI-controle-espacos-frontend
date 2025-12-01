@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { ImagePathInput } from "../Componets/FileInput";
 import Navbar from "../Componets/Navbar";
+import { handlerCreateSpace } from "../Service/service";
 export interface Space {
   id?: number;
   name: string;
@@ -45,30 +46,30 @@ export default function CreateSpacePage() {
       setError(v);
       return;
     }
-
     setLoading(true);
     try {
-      console.log("Submitting form:", form);
-      // Ajuste a URL da API conforme seu backend
-      const res = await fetch("http://localhost:3001/spaces", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
+      const payload = {
+        ...form,
+        image_path: imagePath || undefined,
+      };
 
-      const created = await res.json();
-      setSuccess("Espaço criado com sucesso.");
-      // limpar o form (opcional)
+      const created = await handlerCreateSpace(payload);
+      setSuccess("Espaço criado com sucesso!");
+      
+      // Limpar o form
       setForm({
         name: "",
         description: "",
         capacity: 0,
         available: true,
       });
+      setImagePath("");
+      
       console.info("Created space:", created);
-    } catch (err) {
+    } catch (err: unknown) {
       console.error(err);
-      setError("Erro desconhecido");
+      const message = err instanceof Error ? err.message : String(err);
+      setError(message || "Erro ao criar espaço");
     } finally {
       setLoading(false);
     }

@@ -25,6 +25,49 @@ export async function handlerCreateReservation(
   console.log(res);
   return res.json();
 }
+
+export async function handlerCreateSpace(space: {
+  name: string;
+  description: string;
+  capacity: number;
+  available?: boolean;
+  price?: number;
+  image_path?: string;
+  club?: string;
+  location?: string;
+}) {
+  try {
+    const token = localStorage.getItem("token");
+    
+    if (!token) {
+      throw new Error("Usuário não autenticado. Faça login primeiro.");
+    }
+
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    };
+
+    const res = await fetch(`${API_BASE_URL}/spaces`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(space),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data?.message ?? `Erro ${res.status}`);
+    }
+
+    console.log("create space response:", data);
+    return data;
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("handlerCreateSpace failed:", message);
+    throw err;
+  }
+}
 export async function handlerDeleteReservation(id: number) {
   const token = localStorage.getItem("token");
   await fetch(API_BASE_URL + `/reservations/${id}`, {
@@ -94,8 +137,9 @@ export async function handlerCreateUser(user: {
 
     console.log("create user response:", data);
     return data; 
-  } catch (err: any) {
-    console.error("handlerCreateUser failed:", err);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("handlerCreateUser failed:", message);
     throw err; 
   }
 }
