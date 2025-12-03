@@ -79,18 +79,28 @@ export async function handlerDeleteReservation(id: number) {
   });
 }
 export async function handlerLogin(email: string, password: string) {
-  const token = localStorage.getItem("token");
-
-  const res = await fetch(API_BASE_URL + "/session", {
+  const res = await fetch(`${API_BASE_URL}/session`, {
     method: "POST",
     headers: {
-      headerAuthorization: `Bearer ${token}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({ email, password }),
   });
-  console.log(res);
-  return res.status ===200 ?res.json():null;
+
+  if (!res.ok) {
+    return null;
+  }
+
+  const data = await res.json();
+
+  // Normaliza resposta vinda do backend
+  const user = data.user ?? data;
+
+  return {
+    token: data.token,
+    id: user.id,
+    role: user.role,
+  };
 }
 
 export async function handlerDeleteSpace(id: number) {
