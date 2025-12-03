@@ -33,10 +33,23 @@ export default function NavbarAdmin() {
   const [userName, setUserName] = useState<string | null>(null);
   const [initials, setInitials] = useState<string>("US");
 
+  // 1. Estado para controlar o destino do link da Logo
+  const [logoLink, setLogoLink] = useState("/TelaLogin");
+
   // Carregar dados do usuário logado
   useEffect(() => {
+    if (typeof window === "undefined") return;
+
     const token = localStorage.getItem("token");
     const userId = localStorage.getItem("user_id");
+
+    // 2. Lógica para definir o link da Logo
+    if (token && userId) {
+      setLogoLink("/DashboardAdmin"); // Se logado, vai para a Dashboard do Admin
+    } else {
+      setLogoLink("/Home"); // Se não, vai para Login
+    }
+
     if (!userId) return;
 
     const loadUser = async () => {
@@ -76,8 +89,8 @@ export default function NavbarAdmin() {
   return (
     <nav className="bg-white border-b border-slate-200 px-4 md:px-8 h-auto md:h-[72px] flex items-center justify-between sticky top-0 z-50 shadow-sm py-3">
 
-      {/* LOGO */}
-      <Link href="/DashboardAdmin" className="flex items-center gap-3">
+      {/* LOGO - Agora usa a variável logoLink */}
+      <Link href={logoLink} className="flex items-center gap-3">
         <Image
           src="/icon_rcm_2.png"
           alt="Logo ReservaCM"

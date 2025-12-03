@@ -72,7 +72,7 @@ export default function PerfilPage() {
             
             {/* Card: Informações Pessoais */}
             <div className="bg-background border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm">
-              <CardHeader title="Informações Pessoais" icon={<User size={20} />} onEdit={() => handleEditClick('Informações Pessoais')} />
+              <CardHeader title="Informações Pessoais" icon={<User size={20} />} />
               <div className="p-7 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
                 <InfoItem label="Nome Completo" value="João Silva" />
                 <InfoItem label="CPF" value="123.456.789-00" />
@@ -85,7 +85,7 @@ export default function PerfilPage() {
 
             {/* Card: Informações de Associação */}
             <div className="bg-background border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm">
-              <CardHeader title="Informações de Associação" icon={<Home size={20} />} onEdit={() => handleEditClick('Informações de Associação')} />
+              <CardHeader title="Informações de Associação" icon={<Home size={20} />} />
               <div className="p-7 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
                 <InfoItem label="Número de Associado" value="ASC-2024-00847" />
                 <InfoItem label="Clube Principal" value="Clube Central" />

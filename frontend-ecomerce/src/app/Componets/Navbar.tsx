@@ -19,10 +19,11 @@ const NavLink: React.FC<NavLinkProps> = ({ href, children }) => {
   return (
     <Link
       href={href}
-      className={`py-2 px-4 rounded-lg text-sm font-medium transition-colors ${isActive
-        ? "bg-blue-50 text-blue-600"
-        : "text-slate-600 hover:bg-slate-100 hover:text-blue-600"
-        }`}
+      className={`py-2 px-4 rounded-lg text-sm font-medium transition-colors ${
+        isActive
+          ? "bg-blue-50 text-blue-600"
+          : "text-slate-600 hover:bg-slate-100 hover:text-blue-600"
+      }`}
     >
       {children}
     </Link>
@@ -32,12 +33,22 @@ const NavLink: React.FC<NavLinkProps> = ({ href, children }) => {
 export default function Navbar() {
   const [userName, setUserName] = useState<string | null>(null);
   const [initials, setInitials] = useState<string>("US");
+  
+  // 1. Estado para controlar o destino do link da Logo
+  const [logoLink, setLogoLink] = useState("/TelaLogin");
 
   useEffect(() => {
     if (typeof window === "undefined") return;
 
     const token = localStorage.getItem("token");
     const userId = localStorage.getItem("user_id");
+
+    // 2. Lógica para definir o link da Logo
+    if (token && userId) {
+      setLogoLink("/Reserva"); // Se logado, vai para Home
+    } else {
+      setLogoLink("/Home"); // Se não, vai para Login
+    }
 
     if (!userId) return;
 
@@ -78,8 +89,8 @@ export default function Navbar() {
   return (
     <nav className="bg-white border-b border-slate-200 px-4 md:px-8 h-auto md:h-[72px] flex items-center justify-between sticky top-0 z-50 shadow-sm py-3">
 
-      {/* LOGO */}
-      <Link href="/Dashboard" className="flex items-center gap-3">
+      {/* LOGO - Agora usa a variável logoLink */}
+      <Link href={logoLink} className="flex items-center gap-3">
         <Image
           src="/icon_rcm_2.png"
           alt="Logo ReservaCM"
@@ -87,7 +98,6 @@ export default function Navbar() {
           height={100}
           className="w-40 h-auto object-contain"
         />
-
       </Link>
 
       {/* LINKS */}

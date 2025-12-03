@@ -19,7 +19,7 @@ type Props = {
   initials?: string;
 };
 
-function useOutsideClick(ref: React.RefObject<HTMLDivElement>, callback: () => void) {
+function useOutsideClick(ref: React.RefObject<HTMLDivElement | null>, callback: () => void) {
   useEffect(() => {
     function handleClick(event: MouseEvent) {
       if (ref.current && !ref.current.contains(event.target as Node)) {
