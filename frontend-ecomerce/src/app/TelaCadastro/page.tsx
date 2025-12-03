@@ -124,6 +124,36 @@ const handleSubmit = async (e?: React.FormEvent<HTMLFormElement>) => {
                 }
               />
             </div>
+          )}
+
+          <hr className="border-slate-100" />
+
+          {/* Botões */}
+          <div className="flex gap-4">
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="flex-1 px-6 py-3 rounded-xl shadow-md bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white font-bold transition disabled:opacity-50"
+            >
+              {isLoading ? "Cadastrando..." : "Criar Conta"}
+            </button>
+
+            <button
+              type="button"
+              disabled={isLoading}
+              onClick={() =>
+                setFormData({
+                  name: "",
+                  email: "",
+                  password: "",
+                  confirmPassword: "",
+                  role: "ASSOCIADO",
+                })
+              }
+              className="px-6 py-3 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 font-semibold transition"
+            >
+              Limpar
+            </button>
           </div>
 
           <TermsOfService />
