@@ -1,135 +1,212 @@
 "use client";
 
-import HearderCreate from "../Componets/Header";
-import { Buttons } from "../Componets/Buttons";
-import { TermsOfService } from "../Componets/TermsOfService";
-import { InputTextEmail } from "../Componets/InputTextEmail";
-import { InputPassword } from "../Componets/InputPassword";
-import { handlerCreateUser } from "../Service/service";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import React from "react";
+import { handlerCreateUser } from "../Service/service";
 import NavbarAdmin from "../Componets/NavbarAdmin";
 
 export default function Cadastro() {
   const router = useRouter();
-  const [isLoading, setIsLoading] = React.useState(false);
-  const [formData, setFormData] = React.useState<{
-    name: string;
-    email: string;
-    password: string;
-    confirmpassword: string;
-    role: string;
-  }>({
+
+  const [formData, setFormData] = useState({
     name: "",
     email: "",
     password: "",
-    confirmpassword: "",
+    confirmPassword: "",
     role: "ASSOCIADO",
   });
 
-  const handlerBack = () => {
-    router.back();
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+
+  const handleChange = (field: string, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+    if (error) setError(null);
   };
 
-const handleSubmit = async (e?: React.FormEvent<HTMLFormElement>) => {
-  if (e) e.preventDefault();
-
-  if (
-    !formData.name ||
-    !formData.email ||
-    !formData.password ||
-    !formData.confirmpassword ||
-    formData.password.length < 6
-  ) {
-    alert("Por favor, preencha todos os campos corretamente (senha >= 6 caracteres).");
-    return;
+  function validate() {
+    if (!formData.name.trim()) return "O nome é obrigatório.";
+    if (!formData.email.includes("@")) return "Digite um e-mail válido.";
+    if (formData.password.length < 6) return "A senha deve ter no mínimo 6 caracteres.";
+    if (formData.password !== formData.confirmPassword)
+      return "As senhas não coincidem.";
+    return null;
   }
 
-  if (formData.password !== formData.confirmpassword) {
-    alert("As senhas não coincidem.");
-    return;
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    setSuccess(null);
+
+    const msg = validate();
+    if (msg) return setError(msg);
+
+    setIsLoading(true);
+
+    try {
+      await handlerCreateUser({
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        role: formData.role,
+      });
+
+      setSuccess("Conta criada com sucesso!");
+
+      setFormData({
+        name: "",
+        email: "",
+        password: "",
+        confirmPassword: "",
+        role: "ASSOCIADO",
+      });
+
+      setTimeout(() => router.push("/TelaLogin"), 2000);
+    } catch (err: any) {
+      setError(err?.message || "Erro ao cadastrar");
+    } finally {
+      setIsLoading(false);
+    }
   }
-
-  setIsLoading(true);
-  try {
-    const result = await handlerCreateUser({
-      name: formData.name,
-      email: formData.email,
-      password: formData.password,
-      role: formData.role,
-    });
-
-    alert("Usuário cadastrado com sucesso!");
-
-    setFormData({
-      name: "",
-      email: "",
-      password: "",
-      confirmpassword: "",
-      role: "ASSOCIADO",
-    });
-
-    router.push("/TelaLogin");
-  } catch (err: any) {
-    const message = err?.message ?? "Erro ao cadastrar usuário. Verifique os dados e tente novamente.";
-    console.error("Erro ao criar usuário:", err);
-    alert(message);
-  } finally {
-    setIsLoading(false);
-  }
-};
 
   return (
     <>
       <NavbarAdmin />
-      <div className="flex justify-center items-center min-h-screen bg-gray-100">
+
+      {/* TELA IGUAL CREATE SPACE */}
+      <main className="max-w-3xl mx-auto p-6">
+        
+        <h1 className="text-3xl font-bold mb-6 text-slate-800">
+          Criar Usuário
+        </h1>
+
         <form
           onSubmit={handleSubmit}
-          className="bg-white rounded-2xl shadow-xl p-12 w-full max-w-md"
+          className="bg-white p-8 rounded-2xl shadow-lg border border-slate-100 space-y-6"
         >
-          <HearderCreate />
-
-          <div className="mb-10">
-            <h3 className="font-semibold mb-2 text-gray-900">Informações Pessoais</h3>
-
-            <div className="flex flex-col mb-4">
-              <label className="text-sm text-gray-700 mb-1">Nome</label>
-              <input
-                type="text"
-                name="nome"
-                placeholder="Seu nome"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="border border-gray-200 rounded px-3 py-2 w-full text-gray-900 placeholder-gray-600 bg-gray-50 focus:outline-none focus:border-blue-600 focus:bg-white"
-                required
-              />
-            </div>
-
-            <InputTextEmail
-              value={formData.email}
-              setChange={(e) => setFormData({ ...formData, email: e.target.value })}
+          {/* Nome */}
+          <div>
+            <label className="block text-sm font-semibold text-slate-700 mb-2">
+              Nome Completo
+            </label>
+            <input
+              type="text"
+              value={formData.name}
+              onChange={(e) => handleChange("name", e.target.value)}
+              placeholder="Ex: João da Silva"
+              required
+              className="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
             />
-
-            <div className="flex flex-row gap-4 mt-4">
-              <InputPassword
-                value={formData.password}
-                labelvalue="Senha"
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              />
-              <InputPassword
-                value={formData.confirmpassword}
-                labelvalue="Confirmar Senha"
-                onChange={(e) =>
-                  setFormData({ ...formData, confirmpassword: e.target.value })
-                }
-              />
-            </div>
           </div>
 
-          <TermsOfService />
-          <Buttons onChangeBack={handlerBack} onSubmit={handleSubmit} />
+          {/* Email */}
+          <div>
+            <label className="block text-sm font-semibold text-slate-700 mb-2">
+              E-mail
+            </label>
+            <input
+              type="email"
+              value={formData.email}
+              onChange={(e) => handleChange("email", e.target.value)}
+              placeholder="email@exemplo.com"
+              required
+              className="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition"
+            />
+          </div>
+
+          {/* Senha */}
+          <div>
+            <label className="block text-sm font-semibold text-slate-700 mb-2">
+              Senha
+            </label>
+            <input
+              type={showPassword ? "text" : "password"}
+              value={formData.password}
+              onChange={(e) => handleChange("password", e.target.value)}
+              placeholder="Crie uma senha"
+              required
+              className="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition"
+            />
+
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="text-blue-600 text-sm mt-1"
+            >
+              {showPassword ? "Ocultar senha" : "Mostrar senha"}
+            </button>
+          </div>
+
+          {/* Confirmar Senha */}
+          <div>
+            <label className="block text-sm font-semibold text-slate-700 mb-2">
+              Confirmar Senha
+            </label>
+            <input
+              type={showPassword ? "text" : "password"}
+              value={formData.confirmPassword}
+              onChange={(e) =>
+                handleChange("confirmPassword", e.target.value)
+              }
+              placeholder="Repita a senha"
+              required
+              className={`w-full p-3 border rounded-xl outline-none transition
+                ${
+                  formData.confirmPassword &&
+                  formData.password !== formData.confirmPassword
+                    ? "border-red-300 focus:ring-red-200 focus:border-red-500"
+                    : "border-slate-300 focus:ring-blue-500"
+                }
+              `}
+            />
+          </div>
+
+          {/* Mensagens */}
+          {error && (
+            <div className="p-3 bg-red-50 text-red-600 rounded-lg text-sm border border-red-100">
+              🚨 {error}
+            </div>
+          )}
+
+          {success && (
+            <div className="p-3 bg-green-50 text-green-600 rounded-lg text-sm border border-green-100">
+              ✅ {success}
+            </div>
+          )}
+
+          <hr className="border-slate-100" />
+
+          {/* Botões */}
+          <div className="flex gap-4">
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="flex-1 px-6 py-3 rounded-xl shadow-md bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white font-bold transition disabled:opacity-50"
+            >
+              {isLoading ? "Cadastrando..." : "Criar Conta"}
+            </button>
+
+            <button
+              type="button"
+              disabled={isLoading}
+              onClick={() =>
+                setFormData({
+                  name: "",
+                  email: "",
+                  password: "",
+                  confirmPassword: "",
+                  role: "ASSOCIADO",
+                })
+              }
+              className="px-6 py-3 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 font-semibold transition"
+            >
+              Limpar
+            </button>
+          </div>
         </form>
-      </div>
+      </main>
     </>
   );
 }

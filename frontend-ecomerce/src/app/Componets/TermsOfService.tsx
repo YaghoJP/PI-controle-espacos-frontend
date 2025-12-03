@@ -14,7 +14,7 @@ export function TermsOfService() {
       <label htmlFor="termos">
         Li e concordo com os{" "}
         <a href="/termos" style={{ textDecoration: "underline" }}>
-          Termos de Serviço
+          Termos de Serviço 
         </a>
         e a{" "}
         <a href="/privacidade" style={{ textDecoration: "underline" }}>

@@ -1,11 +1,11 @@
-// src/app/components/Navbar.tsx
 "use client";
 
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { API_BASE_URL } from "../Service/localhost";
-import UserMenuDropdown from "./UserMenuDropdown"; // <-- reinserido
+import UserMenuDropdown from "./UserMenuDropdown";
+import Image from "next/image";
 
 interface NavLinkProps {
   href: string;
@@ -19,11 +19,10 @@ const NavLink: React.FC<NavLinkProps> = ({ href, children }) => {
   return (
     <Link
       href={href}
-      className={`py-2 px-4 rounded-lg text-sm font-medium transition-colors ${
-        isActive
-          ? "bg-blue-50 text-blue-600"
-          : "text-slate-600 hover:bg-slate-100 hover:text-blue-600"
-      }`}
+      className={`py-2 px-4 rounded-lg text-sm font-medium transition-colors ${isActive
+        ? "bg-blue-50 text-blue-600"
+        : "text-slate-600 hover:bg-slate-100 hover:text-blue-600"
+        }`}
     >
       {children}
     </Link>
@@ -78,15 +77,17 @@ export default function Navbar() {
 
   return (
     <nav className="bg-white border-b border-slate-200 px-4 md:px-8 h-auto md:h-[72px] flex items-center justify-between sticky top-0 z-50 shadow-sm py-3">
-      
+
       {/* LOGO */}
       <Link href="/Dashboard" className="flex items-center gap-3">
-        <div className="w-9 h-9 bg-gradient-to-br from-green-700 to-green-600 rounded-lg flex items-center justify-center">
-          <span className="text-white font-bold">✓</span>
-        </div>
-        <div className="text-xl font-bold text-gray-900">
-          reserva<span className="text-blue-600">CM</span>
-        </div>
+        <Image
+          src="/icon_rcm_2.png"
+          alt="Logo ReservaCM"
+          width={100}
+          height={100}
+          className="w-40 h-auto object-contain"
+        />
+
       </Link>
 
       {/* LINKS */}

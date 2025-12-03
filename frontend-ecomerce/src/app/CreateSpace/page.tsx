@@ -1,8 +1,10 @@
 "use client";
+
 import React, { useState } from "react";
-import { ImagePathInput } from "../Componets/FileInput";
-import Navbar from "../Componets/Navbar";
+import { ImagePathInput } from "../Componets/FileInput"; // Verifique se o caminho está correto (Components vs Componets)
+import Navbar from "../Componets/NavbarAdmin";
 import { handlerCreateSpace } from "../Service/service";
+
 export interface Space {
   id?: number;
   name: string;
@@ -23,9 +25,11 @@ export default function CreateSpacePage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [imagePath, setImagePath] = useState<string>("");
+
   function handleChange<K extends keyof Space>(key: K, value: Space[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
   }
+
   function validate() {
     if (!form.name.trim()) return "Nome é obrigatório.";
     if (!form.description.trim()) return "Descrição é obrigatória.";
@@ -35,9 +39,7 @@ export default function CreateSpacePage() {
   }
 
   async function handleSubmit(e: React.FormEvent) {
-    
     e.preventDefault();
-
     setError(null);
     setSuccess(null);
 
@@ -46,6 +48,7 @@ export default function CreateSpacePage() {
       setError(v);
       return;
     }
+
     setLoading(true);
     try {
       const payload = {
@@ -55,7 +58,7 @@ export default function CreateSpacePage() {
 
       const created = await handlerCreateSpace(payload);
       setSuccess("Espaço criado com sucesso!");
-      
+
       // Limpar o form
       setForm({
         name: "",
@@ -64,7 +67,7 @@ export default function CreateSpacePage() {
         available: true,
       });
       setImagePath("");
-      
+
       console.info("Created space:", created);
     } catch (err: unknown) {
       console.error(err);
@@ -78,82 +81,89 @@ export default function CreateSpacePage() {
   return (
     <>
       <Navbar />
-    
-      <div className="max-w-3xl mx-auto p-6">
-        <h1 className="text-2xl font-semibold mb-4 ">Criar Espaço</h1>
 
+      <main className="max-w-3xl mx-auto p-6">
+        <h1 className="text-3xl font-bold mb-6 text-slate-800">Criar Novo Espaço</h1>
+
+        {/* O Form agora envolve TODOS os inputs e botões */}
         <form
           onSubmit={handleSubmit}
-          className="space-y-4 bg-white p-6 rounded-2xl shadow"
+          className="bg-white p-8 rounded-2xl shadow-lg border border-slate-100 space-y-6"
         >
+          {/* Nome */}
           <div>
-            <label
-              className="block text-sm font-medium mb-1"
-              style={{ color: "black", borderColor: "black" }}
-            >
-              Clube
+            <label className="block text-sm font-semibold text-slate-700 mb-2">
+              Nome do Espaço
             </label>
             <input
+              type="text"
               value={form.name}
               onChange={(e) => handleChange("name", e.target.value)}
-              style={{ color: "black", borderColor: "black" }}
-              className="w-full p-2 border rounded-lg"
-              placeholder="Nome do espaço"
+              className="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+              placeholder="Ex: Salão de Festas Principal"
               required
             />
           </div>
 
+          {/* Descrição */}
           <div>
-            <label
-              className="block text-sm font-medium mb-1"
-              style={{ color: "black", borderColor: "black" }}
-            >
+            <label className="block text-sm font-semibold text-slate-700 mb-2">
               Descrição
             </label>
             <textarea
               value={form.description}
               onChange={(e) => handleChange("description", e.target.value)}
-              style={{ color: "black", borderColor: "black" }}
-              className="w-full p-2 border rounded-lg min-h-[100px]"
-              placeholder="Descrição curta do espaço"
+              className="w-full p-3 border border-slate-300 rounded-xl min-h-[120px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+              placeholder="Descreva os detalhes do espaço..."
               required
             />
           </div>
-        </form>
-        
-        <div className="flex items-center gap-3">
-          <button
-            type="submit"
-            className="px-4 py-2 rounded-2xl shadow-md bg-gradient-to-r from-blue-500 to-indigo-500 text-white disabled:opacity-60"
-            disabled={loading}
-          >
-            {loading ? "Salvando..." : "Criar Espaço"}
-          </button>
 
-          <div>
+          {/* Grid para Capacidade e Imagem */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label
-                className="block text-sm font-medium mb-1"
-                style={{ color: "black", borderColor: "black" }}
-              >
-                Capacidade
+              <label className="block text-sm font-semibold text-slate-700 mb-2">
+                Capacidade (pessoas)
               </label>
               <input
                 type="number"
                 value={form.capacity}
-                style={{ color: "black", borderColor: "black" }}
                 onChange={(e) => handleChange("capacity", Number(e.target.value))}
-                className="w-full p-2 border rounded-lg"
-                min={0}
+                className="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition"
+                min={1}
                 required
               />
             </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-2">
+                Imagem do Espaço
+              </label>
+              <div className="border border-slate-300 rounded-xl p-1">
+                <ImagePathInput onImageSelect={setImagePath} value={imagePath} />
+              </div>
+            </div>
           </div>
-          <ImagePathInput onImageSelect={setImagePath} value={imagePath} />
-          <div className="flex items-center gap-3">
+
+          {/* Mensagens de Erro/Sucesso */}
+          {error && (
+            <div className="p-3 bg-red-50 text-red-600 rounded-lg text-sm font-medium border border-red-100">
+              🚨 {error}
+            </div>
+          )}
+          {success && (
+            <div className="p-3 bg-green-50 text-green-600 rounded-lg text-sm font-medium border border-green-100">
+              ✅ {success}
+            </div>
+          )}
+
+          <hr className="border-slate-100" />
+
+          {/* Botões de Ação */}
+          <div className="flex items-center gap-4 pt-2">
             <button
               type="submit"
-              className="px-4 py-2 rounded-2xl shadow-md bg-gradient-to-r from-blue-500 to-indigo-500 text-white disabled:opacity-60"
+              className="flex-1 px-6 py-3 rounded-xl shadow-md bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white font-bold transition-all disabled:opacity-60 disabled:cursor-not-allowed"
               disabled={loading}
             >
               {loading ? "Salvando..." : "Criar Espaço"}
@@ -161,26 +171,25 @@ export default function CreateSpacePage() {
 
             <button
               type="button"
-              className="px-4 py-2 rounded-2xl border"
-              style={{ backgroundColor: "gray" }}
-              onClick={() =>
+              className="px-6 py-3 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 font-semibold transition-all"
+              onClick={() => {
                 setForm({
                   name: "",
                   description: "",
                   capacity: 0,
                   available: true,
-                })
-              }
+                });
+                setImagePath("");
+                setError(null);
+                setSuccess(null);
+              }}
               disabled={loading}
             >
               Limpar
             </button>
           </div>
-
-          {error && <p className="text-sm text-red-600">{error}</p>}
-          {success && <p className="text-sm text-green-600">{success}</p>}
-        </div>
-      </div>
+        </form>
+      </main>
     </>
   );
 }
