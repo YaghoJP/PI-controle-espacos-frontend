@@ -19,11 +19,6 @@ export default function PerfilPage() {
   const [isEditingInfo, setIsEditingInfo] = useState(false);
   const [isEditingAssoc, setIsEditingAssoc] = useState(false);
 
-  // Manipulador de clique para o botão de edição (apenas demo)
-  const handleEditClick = (section: string) => {
-    alert(`Demo: Abrindo formulário de edição para "${section}"...`);
-    // Aqui você mudaria o estado, ex: setIsEditingInfo(true)
-  };
 
   return (
     // O fundo principal é controlado pelo seu globals.css (var(--background))
@@ -46,13 +41,6 @@ export default function PerfilPage() {
             <div className="text-center pb-6 mb-6 border-b border-slate-100 dark:border-slate-800">
               <div className="w-32 h-32 rounded-full bg-gradient-to-br from-blue-600 to-blue-700 mx-auto mb-4 flex items-center justify-center relative">
                 <span className="text-5xl font-bold text-white">JD</span>
-                <button 
-                  title="Alterar foto" 
-                  className="absolute bottom-1 right-1 w-9 h-9 bg-white dark:bg-slate-700 border-2 border-slate-200 dark:border-slate-600 rounded-full flex items-center justify-center transition-all hover:bg-slate-100 hover:border-blue-600"
-                  onClick={() => alert('Demo: Abrir seletor de imagem...')}
-                >
-                  <Camera size={16} className="text-slate-600 dark:text-slate-300" />
-                </button>
               </div>
               <h2 className="text-xl font-bold text-foreground">João Silva</h2>
               <p className="text-sm text-slate-500 mb-3">joao.silva@email.com</p>
@@ -127,24 +115,7 @@ export default function PerfilPage() {
                   <PlanFeature text="Prioridade em reservas de alta demanda" />
                 </ul>
                 <div className="flex flex-col sm:flex-row gap-3">
-                  <button className="flex-1 py-3 px-5 bg-white text-slate-900 rounded-lg font-semibold transition-transform hover:scale-105">
-                    Fazer Upgrade
-                  </button>
-                  <button className="flex-1 py-3 px-5 bg-transparent border-2 border-white/30 text-white rounded-lg font-semibold transition-colors hover:bg-white/10 hover:border-white">
-                    Gerenciar Plano
-                  </button>
                 </div>
-              </div>
-            </div>
-
-            {/* Card: Segurança */}
-            <div className="bg-background border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm">
-              <CardHeader title="Segurança" icon={<Lock size={20} />} />
-              <div className="p-7 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
-                <InfoItem label="Senha" value="••••••••••••" />
-                <InfoItem label="Última alteração" value="há 45 dias" />
-                <InfoItem label="Autenticação em 2 etapas" value="Desativada" />
-                <InfoItem label="Sessões ativas" value="2 dispositivos" />
               </div>
             </div>
 
@@ -164,14 +135,6 @@ const CardHeader = ({ title, icon, onEdit }: { title: string; icon: React.ReactN
       <span className="text-blue-600">{icon}</span>
       {title}
     </h3>
-    {onEdit && (
-      <button 
-        onClick={onEdit} 
-        className="py-2 px-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-lg font-semibold text-sm transition-colors hover:bg-slate-200 dark:hover:bg-slate-700"
-      >
-        Editar
-      </button>
-    )}
   </div>
 );
 

@@ -78,7 +78,7 @@ export default function UserMenuDropdown({ userName = null, initials = "US" }: P
       /* ignore */
     }
     setIsOpen(false);
-    router.push("/TelaLogin");
+    router.push("/Home");
   };
 
   const displayName = userName ?? "Usuário";
