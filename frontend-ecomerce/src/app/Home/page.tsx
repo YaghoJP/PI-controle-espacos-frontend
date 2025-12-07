@@ -17,7 +17,8 @@ export default function HomePage() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const handleLogin = () => setIsModalOpen(true);
+  const handleLogin = () => router.push("/TelaLogin");
+
   const handleContactRedirect = () =>
     alert("Redirecionando para a página de contato...");
 

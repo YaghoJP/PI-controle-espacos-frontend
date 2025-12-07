@@ -2,12 +2,13 @@
 
 import { useState } from "react";
 import { handlerCreateReservation } from "../Service/service";
+
 interface ReservationPopupProps {
   open: boolean;
-  user_id?: number;
+  user_id?: number | null;
   space_id?: number;
   onClose: () => void;
-  onConfirm: (start: string, end: string) => void;
+  onSuccess?: () => void; // opcional: recarregar lista, mostrar toast etc.
 }
 
 export default function ReservationPopup({
@@ -15,67 +16,84 @@ export default function ReservationPopup({
   space_id,
   open,
   onClose,
+  onSuccess,
 }: ReservationPopupProps) {
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
-  const [dataReserva, setDataReserva] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
   if (!open) return null; // não renderiza se não estiver aberto
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (!startTime || !endTime) {
+      alert("Preencha os horários de início e término.");
       return;
     }
-    const startISO = new Date(startTime).toISOString();
-    const endISO = new Date(endTime).toISOString();
-    const horaAtual = new Date().toISOString();
 
-    handlerCreateReservation(space_id, startISO, endISO, horaAtual);
-    setStartTime("");
-    setEndTime("");
-    setDataReserva("");
-    onClose();
+    if (!user_id || !space_id) {
+      alert("Erro interno: usuário ou espaço não informado.");
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+
+      const startISO = new Date(startTime).toISOString();
+      const endISO = new Date(endTime).toISOString();
+
+      await handlerCreateReservation({
+        user_id,
+        space_id,
+        start_time: startISO,
+        end_time: endISO,
+      });
+
+      alert("Reserva criada com sucesso!");
+
+      setStartTime("");
+      setEndTime("");
+
+      if (onSuccess) onSuccess();
+      onClose();
+    } catch (err: any) {
+      console.error("Erro ao criar reserva:", err);
+      alert(err?.message || "Erro ao criar a reserva. Tente novamente.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
+    <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50">
       <div className="bg-white rounded-2xl shadow-lg p-6 w-80">
-        <h2
-          className="text-lg font-semibold mb-4 text-center"
-          style={{ color: "black" }}
-        >
+        <h2 className="text-lg font-semibold mb-4 text-center text-black">
           Agendar Reserva
         </h2>
 
         <div className="flex flex-col gap-3">
           <div>
-            <label
-              className="text-sm font-medium block"
-              style={{ color: "black" }}
-            >
+            <label className="text-sm font-medium block text-black">
               Horário de Início
             </label>
             <input
               type="datetime-local"
-              style={{ color: "black" }}
               value={startTime}
               onChange={(e) => setStartTime(e.target.value)}
-              className="mt-1 w-full border border-black rounded-lg px-2 py-1 focus:ring focus:ring-blue-400 outline-none"
+              className="mt-1 w-full border border-gray-300 rounded-lg px-2 py-1 
+                         focus:ring focus:ring-blue-400 outline-none text-black"
             />
           </div>
 
           <div>
-            <label
-              className="text-sm font-medium block"
-              style={{ color: "black" }}
-            >
+            <label className="text-sm font-medium block text-black">
               Horário de Término
             </label>
             <input
-              style={{ color: "black" }}
               type="datetime-local"
               value={endTime}
               onChange={(e) => setEndTime(e.target.value)}
-              className="mt-1 w-full border border-black rounded-lg px-2 py-1 focus:ring focus:ring-blue-400 outline-none"
+              className="mt-1 w-full border border-gray-300 rounded-lg px-2 py-1 
+                         focus:ring focus:ring-blue-400 outline-none text-black"
             />
           </div>
         </div>
@@ -83,16 +101,17 @@ export default function ReservationPopup({
         <div className="flex justify-end gap-2 mt-6">
           <button
             onClick={onClose}
-            style={{ background: "#D1D5DB" }}
+            disabled={isLoading}
             className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 transition"
           >
             Cancelar
           </button>
           <button
             onClick={handleConfirm}
-            className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition"
+            disabled={isLoading}
+            className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition disabled:opacity-60"
           >
-            Confirmar
+            {isLoading ? "Salvando..." : "Confirmar"}
           </button>
         </div>
       </div>

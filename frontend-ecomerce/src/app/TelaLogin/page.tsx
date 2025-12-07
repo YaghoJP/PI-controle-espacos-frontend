@@ -12,49 +12,56 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false); 
 
   const router = useRouter();
-const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-  e.preventDefault();
-  setIsLoading(true);
 
-  try {
-    const handler = await handlerLogin(email.trim(), password);
-    console.log("login response:", handler);
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsLoading(true);
 
-    if (!handler || !handler.token) {
-      alert("Credenciais inválidas. Tente novamente.");
-      return;
+    try {
+      const handler = await handlerLogin(email.trim(), password);
+      console.log("login response:", handler);
+
+      if (!handler || !handler.token) {
+        alert("Credenciais inválidas. Tente novamente.");
+        return;
+      }
+
+      console.log("[DEBUG] handler.role bruto:", handler.role, typeof handler.role);
+
+      const roleRaw = String(handler.role ?? "").trim();
+      const role = roleRaw.toUpperCase();
+
+      console.log("[DEBUG] role normalizado:", `"${role}"`);
+
+      // salva informações
+      localStorage.setItem("token", handler.token);
+      if (handler.role !== undefined && handler.role !== null) {
+        localStorage.setItem("role", String(handler.role));
+      }
+      if (handler.id !== undefined && handler.id !== null) {
+        localStorage.setItem("user_id", String(handler.id));
+      }
+
+
+      console.log(role);
+
+      // redireciona com base na role normalizada
+      if (role === "ASSOCIADO") {
+        router.push("/Dashboard");
+      } else if (role === "ADMIN" || role === "ADMINISTRADOR" || role === "ADM") {
+        router.push("/DashboardAdmin");
+      } else {
+        // fallback: se não corresponde a nada esperado, use role originalmente retornada
+        console.warn("Role não mapeada:", handler.role);
+        router.push("/Dashboard");
+      }
+    } catch (err) {
+      console.error("Erro no login:", err);
+      alert("Erro ao conectar com o servidor. Tente novamente mais tarde.");
+    } finally {
+      setIsLoading(false);
     }
-
-    // normaliza valores
-    const roleRaw = String(handler.role ?? "").trim();
-    const role = roleRaw.toUpperCase();
-
-    // salva informações
-    localStorage.setItem("token", handler.token);
-    if (handler.role !== undefined && handler.role !== null) {
-      localStorage.setItem("role", String(handler.role));
-    }
-    if (handler.id !== undefined && handler.id !== null) {
-      localStorage.setItem("user_id", String(handler.id));
-    }
-
-    // redireciona com base na role normalizada
-    if (role === "ASSOCIADO") {
-      router.push("/Dashboard");
-    } else if (role === "ADMIN" || role === "ADMINISTRADOR" || role === "ADM") {
-      router.push("/DashboardAdmin");
-    } else {
-      // fallback: se não corresponde a nada esperado, use role originalmente retornada
-      console.warn("Role não mapeada:", handler.role);
-      router.push("/Dashboard");
-    }
-  } catch (err) {
-    console.error("Erro no login:", err);
-    alert("Erro ao conectar com o servidor. Tente novamente mais tarde.");
-  } finally {
-    setIsLoading(false);
-  }
-};
+  };
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">

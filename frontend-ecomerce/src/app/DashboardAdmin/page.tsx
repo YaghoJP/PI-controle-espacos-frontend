@@ -1,48 +1,94 @@
-// app/dashboard/page.tsx
+// app/Dashboard/page.tsx
 "use client";
 
-// React e hooks
-import { useEffect, useState } from "react";
-import Navbar from "../Componets/NavbarAdmin";
-import { Space } from "../Componets/SpaceCard";
-import SpaceCard from "../Componets/SpaceCard"; // Importa o componente e seu tipo
+import { useEffect, useState, useCallback } from "react";
+import NavbarAdmin from "../Componets/NavbarAdmin";
+import SpaceCard, { Space } from "../Componets/SpaceCard";
 import { Filter } from "lucide-react";
 import { API_BASE_URL } from "../Service/localhost";
 import { handlerDeleteSpace } from "../Service/service";
-import NavbarAdmin from "../Componets/NavbarAdmin";
 import ReservationPopup from "../Componets/PopUpReserva";
-import { set } from "zod";
 
-// Componente principal da página de dashboard
 export default function DashboardPage() {
-  const [resultsCount, setResultsCount] = useState<number>();
+  const [resultsCount, setResultsCount] = useState<number>(0);
   const [spacesData, setSpacesData] = useState<Space[]>([]);
-  const [user_id, setUserId] = useState<number>(); // Exemplo de user_i
-  const [space_id, setSpaceId] = useState<number>(); // Exemplo de space_id
-  const handleFilterChange = () => {
-    const randomCount = Math.floor(Math.random() * spacesData.length) + 1;
-    setResultsCount(randomCount);
+  const [userId, setUserId] = useState<number | undefined>();
+  const [spaceId, setSpaceId] = useState<number | undefined>();
+  const [openPopup, setOpenPopup] = useState<boolean>(false);
+
+  // carrega user_id do localStorage uma vez
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("user_id");
+      if (stored) {
+        setUserId(Number(stored));
+      }
+    }
+  }, []);
+
+  const fetchSpaces = useCallback(async () => {
+    try {
+      const token =
+        typeof window !== "undefined" ? localStorage.getItem("token") : null;
+
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+        headers["headerAuthorization"] = `Bearer ${token}`; // compat com backend
+      }
+
+      const response = await fetch(`${API_BASE_URL}/spaces`, {
+        method: "GET",
+        headers,
+      });
+
+      if (!response.ok) {
+        console.error("Erro ao buscar espaços. Status:", response.status);
+        setSpacesData([]);
+        setResultsCount(0);
+        return;
+      }
+
+      const data = await response.json();
+
+      const list: Space[] = Array.isArray(data) ? data : [];
+      setSpacesData(list);
+      setResultsCount(list.length);
+    } catch (error) {
+      console.error("Erro ao buscar espaços:", error);
+      setSpacesData([]);
+      setResultsCount(0);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchSpaces();
+  }, [fetchSpaces]);
+
+  const handleDelete = async (id: number) => {
+    try {
+      await handlerDeleteSpace(id);
+      await fetchSpaces();
+    } catch (err) {
+      console.error("Erro ao deletar espaço:", err);
+      alert("Erro ao deletar espaço. Tente novamente.");
+    }
   };
 
-  const [openPopup, setOpenPopup] = useState<boolean>(false);
-  useEffect(() => {
-    const fetchSpaces = async () => {
-      try {
-        const response = await fetch(API_BASE_URL + "/spaces");
-        const data = await response.json();
-        setSpacesData(data);
-        setResultsCount(data.length); // Inicializa com o total de espaços
-        
-      } catch (error) {
-        console.error("Erro ao buscar espaços:", error);
-      }
-    };
-    fetchSpaces();
-  }, [spacesData, resultsCount]);
+  const handleFilterChange = () => {
+    const randomCount =
+      spacesData.length > 0
+        ? Math.floor(Math.random() * spacesData.length) + 1
+        : 0;
+    setResultsCount(randomCount);
+  };
 
   return (
     <>
       <NavbarAdmin />
+
       <main className="max-w-7xl mx-auto p-4 md:p-8">
         <header className="mb-8">
           <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">
@@ -67,14 +113,13 @@ export default function DashboardPage() {
               <select
                 onChange={handleFilterChange}
                 className="bg-background p-2.5 border-2 border-slate-200 dark:border-slate-700 
-                rounded-lg text-sm transition-all focus:outline-none 
-                focus:border-blue-600 focus:ring-4 focus:ring-blue-600/10"
+                  rounded-lg text-sm transition-all focus:outline-none 
+                  focus:border-blue-600 focus:ring-4 focus:ring-blue-600/10"
               >
                 <option>Todos os tipos</option>
                 <option>Salão de Festas</option>
               </select>
             </div>
-            {/* Adicione outros filtros aqui */}
           </div>
         </section>
 
@@ -86,27 +131,31 @@ export default function DashboardPage() {
             </strong>{" "}
             disponíveis
           </p>
+
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {spacesData.slice(0, spacesData.length).map((space) => (
+            {(spacesData || []).map((space) => (
               <SpaceCard
                 key={space.id}
                 space={space}
-                onDelete={handlerDeleteSpace}
+                onDelete={() => handleDelete(space.id)}
                 onReservation={() => {
-                  setOpenPopup(true);
                   setSpaceId(space.id);
-                  setUserId(user_id);
+                  setOpenPopup(true);
                 }}
               />
             ))}
           </div>
-          {openPopup && (
+
+          {openPopup && spaceId && userId && (
             <ReservationPopup
               open={openPopup}
-              space_id={space_id}
-              user_id={user_id}
+              space_id={spaceId}
+              user_id={userId}
               onClose={() => setOpenPopup(false)}
-              onConfirm={() => {}}
+              onConfirm={() => {
+                // aqui você pode dar um fetchSpaces() depois que criar reserva
+                setOpenPopup(false);
+              }}
             />
           )}
         </div>

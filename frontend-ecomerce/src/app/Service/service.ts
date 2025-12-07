@@ -1,73 +1,68 @@
 import { API_BASE_URL } from "./localhost";
-export async function handlerCreateReservation(
-  space_id?: number,
-  start_time?: string,
-  end_time?: string,
-  reservation_date?: string
-) {
-  const token = localStorage.getItem("token");
-  const user_id = Number(localStorage.getItem("user_id"));
-  const res = await fetch(API_BASE_URL + "/reservations", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
 
-    body: JSON.stringify({
-      user_id,
-      space_id,
-      start_time,
-      end_time,
-      reservation_date,
-    }),
+export async function handlerCreateReservation(payload: {
+  user_id: number;
+  space_id: number;
+  start_time: string; // ISO
+  end_time: string;   // ISO
+}) {
+  const token =
+    typeof window !== "undefined" ? localStorage.getItem("token") : null;
+
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
+  const res = await fetch(`${API_BASE_URL}/reservations`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(payload),
   });
-  console.log(res);
-  return res.json();
+
+  const data = await res.json().catch(() => null);
+
+  if (!res.ok) {
+    console.error("Erro ao criar reserva:", data);
+    throw new Error(data?.message || `Erro ao criar reserva (status ${res.status})`);
+  }
+
+  return data;
 }
 
 export async function handlerCreateSpace(space: {
   name: string;
   description: string;
   capacity: number;
-  available?: boolean;
-  price?: number;
-  image_path?: string;
-  club?: string;
-  location?: string;
+  available: boolean;
+  imageUrl?: string | null;
 }) {
-  try {
-    const token = localStorage.getItem("token");
-    
-    if (!token) {
-      throw new Error("Usuário não autenticado. Faça login primeiro.");
-    }
+  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
-    const headers: Record<string, string> = {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    };
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+  if (token) headers["Authorization"] = `Bearer ${token}`;
 
-    const res = await fetch(`${API_BASE_URL}/spaces`, {
-      method: "POST",
-      headers,
-      body: JSON.stringify(space),
-    });
+  const res = await fetch(`${API_BASE_URL}/spaces`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(space),
+  });
 
-    const data = await res.json();
-
-    if (!res.ok) {
-      throw new Error(data?.message ?? `Erro ${res.status}`);
-    }
-
-    console.log("create space response:", data);
-    return data;
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : String(err);
-    console.error("handlerCreateSpace failed:", message);
-    throw err;
+  const raw = await res.text();
+  if (!res.ok) {
+    console.error("Erro ao criar espaço:", res.status, raw);
+    throw new Error(`Erro ao criar espaço (${res.status})`);
   }
+
+  return raw ? JSON.parse(raw) : null;
 }
+
+
 export async function handlerDeleteReservation(id: number) {
   const token = localStorage.getItem("token");
   await fetch(API_BASE_URL + `/reservations/${id}`, {
@@ -78,6 +73,7 @@ export async function handlerDeleteReservation(id: number) {
     },
   });
 }
+
 export async function handlerLogin(email: string, password: string) {
   const res = await fetch(`${API_BASE_URL}/session`, {
     method: "POST",
@@ -87,21 +83,19 @@ export async function handlerLogin(email: string, password: string) {
     body: JSON.stringify({ email, password }),
   });
 
-  if (!res.ok) {
-    return null;
-  }
+  if (!res.ok) return null;
 
   const data = await res.json();
 
-  // Normaliza resposta vinda do backend
-  const user = data.user ?? data;
+  console.log("LOGIN RAW:", data);
 
   return {
     token: data.token,
-    id: user.id,
-    role: user.role,
+    id: data.id,
+    role: data.role, 
   };
 }
+
 
 export async function handlerDeleteSpace(id: number) {
   const token = localStorage.getItem("token");

@@ -5,6 +5,7 @@ import React, { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { API_BASE_URL } from "../Service/localhost";
 import Image from "next/image";
+import UserMenuDropdown from "./UserMenuDropdown";
 
 interface NavLinkProps {
   href: string;
@@ -32,11 +33,17 @@ const NavLink: React.FC<NavLinkProps> = ({ href, children }) => {
 export default function NavbarAdmin() {
   const [userName, setUserName] = useState<string | null>(null);
   const [initials, setInitials] = useState<string>("US");
+  const [role, setRole] = useState<string | null>(null);
 
-  // Carregar dados do usuário logado
   useEffect(() => {
     const token = localStorage.getItem("token");
     const userId = localStorage.getItem("user_id");
+    const storedRole = localStorage.getItem("role");
+
+    if (storedRole) {
+      setRole(storedRole.toUpperCase());
+    }
+
     if (!userId) return;
 
     const loadUser = async () => {
@@ -51,11 +58,12 @@ export default function NavbarAdmin() {
           headers,
         });
 
-        const data = await res.json();
-        const user = data?.data ?? data;
+        if (!res.ok) {
+          console.error("Falha ao buscar usuário:", await res.text());
+          return;
+        }
 
-        if (!user?.name) return;
-
+        const user = await res.json();
         setUserName(user.name);
 
         const parts = user.name.split(" ");
@@ -65,6 +73,7 @@ export default function NavbarAdmin() {
             : (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 
         setInitials(ini);
+
       } catch (err) {
         console.error("Erro ao carregar usuário:", err);
       }
@@ -96,19 +105,12 @@ export default function NavbarAdmin() {
         <NavLink href="/TelaCadastro">Cadastrar Usuários</NavLink>
       </div>
 
-      {/* PERFIL DO ADM */}
-      <div className="flex items-center gap-3 cursor-pointer py-1 px-2 rounded-lg hover:bg-slate-100 transition">
-        <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-700 rounded-full flex items-center justify-center text-white font-semibold">
-          {initials}
-        </div>
-
-        <div className="hidden lg:flex flex-col">
-          <span className="font-semibold text-sm text-foreground">
-            {userName ?? "Carregando..."}
-          </span>
-          <span className="text-xs text-slate-500">Administrador</span>
-        </div>
-      </div>
+      {/* MENU DO USUÁRIO (DROPDOWN) */}
+      <UserMenuDropdown
+        userName={userName}
+        initials={initials}
+        role={role ?? "ADMIN"}
+      />
 
     </nav>
   );

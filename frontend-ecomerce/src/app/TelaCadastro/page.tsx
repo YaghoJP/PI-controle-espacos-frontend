@@ -73,8 +73,6 @@ export default function Cadastro() {
 
   return (
     <>
-      <NavbarAdmin />
-
       {/* TELA IGUAL CREATE SPACE */}
       <main className="max-w-3xl mx-auto p-6">
         

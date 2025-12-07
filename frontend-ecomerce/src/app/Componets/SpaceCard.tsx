@@ -1,9 +1,10 @@
-import Image from "next/image";
-import {} from "../Componets/PopUpReserva"
-import { Users, X } from "lucide-react"; // importando o X
-import {handlerDeleteSpace} from "../Service/service"
+// src/app/Componets/SpaceCard.tsx
+"use client";
+
 import React from "react";
-import { on } from "events";
+import Image from "next/image";
+import { Users, X } from "lucide-react";
+import { handlerDeleteSpace } from "../Service/service";
 
 export interface Space {
   id: number;
@@ -15,31 +16,34 @@ export interface Space {
 
 interface SpaceCardProps {
   space: Space;
-  onDelete?: (id: number) => void; // função opcional para deletar
-  onReservation?: () => void; // função opcional para reservar
+  onDelete?: (id: number) => void;    // função opcional para deletar
+  onReservation?: () => void;         // função opcional para reservar
 }
 
-const SpaceCard: React.FC<SpaceCardProps> = ({ space, onReservation,onDelete }) => {
-  
+const SpaceCard: React.FC<SpaceCardProps> = ({ space, onReservation, onDelete }) => {
   const handleCardClick = () =>
     alert(`Demo: Abrindo detalhes de ${space.name}...`);
-    
+
   const handleDetailsClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
     alert(`Demo: Visualizando detalhes completos de ${space.name}...`);
   };
-  
+
   const handleReserveClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
-    
+    if (onReservation) {
+      onReservation(); // chama a função passada pelo pai (Dashboard)
+    } else {
+      alert(`Função de reserva ainda não implementada para ${space.name}.`);
+    }
   };
 
   const handleDeleteClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
     if (onDelete) {
-      handlerDeleteSpace(space.id);
+      onDelete(space.id);     // usa a função do pai (DashboardAdmin, por ex.)
     } else {
-      alert(`Demo: Deletando ${space.name}...`);
+      handlerDeleteSpace(space.id); // fallback
     }
   };
 
@@ -48,8 +52,8 @@ const SpaceCard: React.FC<SpaceCardProps> = ({ space, onReservation,onDelete }) 
       onClick={handleCardClick}
       className="bg-background border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-md transition-all duration-300 cursor-pointer hover:-translate-y-1 hover:shadow-xl relative"
     >
+      {/* Imagem / header do card */}
       <div className="w-full h-48 relative">
-        {/* Imagem */}
         {space.image ? (
           <Image
             src={space.image}
@@ -68,7 +72,7 @@ const SpaceCard: React.FC<SpaceCardProps> = ({ space, onReservation,onDelete }) 
           Disponível
         </div>
 
-        {/* Botão X para deletar */}
+        {/* Botão de deletar */}
         <button
           onClick={handleDeleteClick}
           className="absolute top-3 left-3 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 shadow-md"
@@ -77,6 +81,7 @@ const SpaceCard: React.FC<SpaceCardProps> = ({ space, onReservation,onDelete }) 
         </button>
       </div>
 
+      {/* Corpo do card */}
       <div className="p-5">
         <h3 className="text-xl font-bold text-foreground mb-2 truncate">
           {space.name}
@@ -100,7 +105,7 @@ const SpaceCard: React.FC<SpaceCardProps> = ({ space, onReservation,onDelete }) 
             Detalhes
           </button>
           <button
-            onClick={onReservation}
+            onClick={handleReserveClick}
             className="flex-2 py-3 bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-lg font-semibold text-sm transition-all hover:-translate-y-px hover:shadow-lg hover:shadow-blue-600/30"
           >
             Reservar

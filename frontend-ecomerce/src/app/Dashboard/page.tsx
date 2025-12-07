@@ -17,6 +17,11 @@ export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
+  const handleReserve = (space: Space) => {
+    // exemplo simples: mandar pra tela de reservas com query param
+    router.push(`/TelaReservas?space_id=${space.id}`);
+  };
+
   const fetchSpaces = useCallback(async () => {
     setIsLoading(true);
     setError(null);
@@ -81,7 +86,7 @@ export default function DashboardPage() {
     // não incluir spacesData/resultsCount nas deps para evitar loop
   }, [fetchSpaces]);
 
-  const handleDelete = async (id: number | string) => {
+  const handleDelete = async (id: number) => {
     try {
       await handlerDeleteSpace(id);
       // refazer fetch após exclusão para atualizar UI
@@ -161,11 +166,17 @@ export default function DashboardPage() {
                 disponíveis
               </p>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                {(spacesData || []).map((space) => (
-                  <SpaceCard key={space.id} space={space} onDelete={() => handleDelete(space.id)} />
-                ))}
-              </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              {(spacesData || []).map((space) => (
+                <SpaceCard
+                  key={space.id}
+                  space={space}
+                  onDelete={() => handleDelete(space.id)}
+                  onReservation={() => handleReserve(space)}   // 👈 AQUI AGORA PASSA A FUNÇÃO
+                />
+              ))}
+            </div>
+
 
               {spacesData.length === 0 && (
                 <div className="mt-6 bg-white rounded-2xl shadow-xl p-6 text-center">

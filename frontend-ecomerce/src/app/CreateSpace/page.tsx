@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { ImagePathInput } from "../Componets/FileInput"; // Verifique se o caminho está correto (Components vs Componets)
+import { ImagePathInput } from "../Componets/FileInput";
 import Navbar from "../Componets/NavbarAdmin";
 import { handlerCreateSpace } from "../Service/service";
 
@@ -11,6 +11,7 @@ export interface Space {
   description: string;
   capacity: number;
   available: boolean;
+  imageUrl?: string | null;
 }
 
 export default function CreateSpacePage() {
@@ -19,6 +20,7 @@ export default function CreateSpacePage() {
     description: "",
     capacity: 0,
     available: true,
+    imageUrl: null,
   });
 
   const [loading, setLoading] = useState(false);
@@ -53,18 +55,18 @@ export default function CreateSpacePage() {
     try {
       const payload = {
         ...form,
-        image_path: imagePath || undefined,
+        imageUrl: imagePath || null, // 👈 agora bate com o backend
       };
 
       const created = await handlerCreateSpace(payload);
       setSuccess("Espaço criado com sucesso!");
 
-      // Limpar o form
       setForm({
         name: "",
         description: "",
         capacity: 0,
         available: true,
+        imageUrl: null,
       });
       setImagePath("");
 
@@ -83,9 +85,10 @@ export default function CreateSpacePage() {
       <Navbar />
 
       <main className="max-w-3xl mx-auto p-6">
-        <h1 className="text-3xl font-bold mb-6 text-slate-800">Criar Novo Espaço</h1>
+        <h1 className="text-3xl font-bold mb-6 text-slate-800">
+          Criar Novo Espaço
+        </h1>
 
-        {/* O Form agora envolve TODOS os inputs e botões */}
         <form
           onSubmit={handleSubmit}
           className="bg-white p-8 rounded-2xl shadow-lg border border-slate-100 space-y-6"
@@ -119,7 +122,7 @@ export default function CreateSpacePage() {
             />
           </div>
 
-          {/* Grid para Capacidade e Imagem */}
+          {/* Capacidade + Imagem */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-2">
@@ -128,7 +131,9 @@ export default function CreateSpacePage() {
               <input
                 type="number"
                 value={form.capacity}
-                onChange={(e) => handleChange("capacity", Number(e.target.value))}
+                onChange={(e) =>
+                  handleChange("capacity", Number(e.target.value))
+                }
                 className="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition"
                 min={1}
                 required
@@ -140,12 +145,15 @@ export default function CreateSpacePage() {
                 Imagem do Espaço
               </label>
               <div className="border border-slate-300 rounded-xl p-1">
-                <ImagePathInput onImageSelect={setImagePath} value={imagePath} />
+                <ImagePathInput
+                  onImageSelect={setImagePath}
+                  value={imagePath}
+                />
               </div>
             </div>
           </div>
 
-          {/* Mensagens de Erro/Sucesso */}
+          {/* Mensagens */}
           {error && (
             <div className="p-3 bg-red-50 text-red-600 rounded-lg text-sm font-medium border border-red-100">
               🚨 {error}
@@ -159,7 +167,7 @@ export default function CreateSpacePage() {
 
           <hr className="border-slate-100" />
 
-          {/* Botões de Ação */}
+          {/* Botões */}
           <div className="flex items-center gap-4 pt-2">
             <button
               type="submit"
@@ -178,6 +186,7 @@ export default function CreateSpacePage() {
                   description: "",
                   capacity: 0,
                   available: true,
+                  imageUrl: null, // 👈 corrigido aqui
                 });
                 setImagePath("");
                 setError(null);
