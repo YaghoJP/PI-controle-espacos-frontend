@@ -8,6 +8,7 @@ import { Filter } from "lucide-react";
 import { API_BASE_URL } from "../Service/localhost";
 import { handlerDeleteSpace } from "../Service/service";
 import ReservationPopup from "../Componets/PopUpReserva";
+import Swal from "sweetalert2";
 
 export default function DashboardPage() {
   const [resultsCount, setResultsCount] = useState<number>(0);
@@ -36,7 +37,7 @@ export default function DashboardPage() {
       };
       if (token) {
         headers["Authorization"] = `Bearer ${token}`;
-        headers["headerAuthorization"] = `Bearer ${token}`; // compat com backend
+        headers["headerAuthorization"] = `Bearer ${token}`; // compat c/ backend
       }
 
       const response = await fetch(`${API_BASE_URL}/spaces`, {
@@ -46,18 +47,34 @@ export default function DashboardPage() {
 
       if (!response.ok) {
         console.error("Erro ao buscar espaços. Status:", response.status);
+
+        Swal.fire({
+          icon: "error",
+          title: "Erro ao carregar espaços",
+          text: "Não foi possível listar os espaços. Tente novamente.",
+          confirmButtonColor: "#2563eb",
+        });
+
         setSpacesData([]);
         setResultsCount(0);
         return;
       }
 
       const data = await response.json();
-
       const list: Space[] = Array.isArray(data) ? data : [];
       setSpacesData(list);
       setResultsCount(list.length);
+
     } catch (error) {
       console.error("Erro ao buscar espaços:", error);
+
+      Swal.fire({
+        icon: "error",
+        title: "Erro ao buscar espaços",
+        text: "Algo deu errado ao carregar os dados. Tente novamente.",
+        confirmButtonColor: "#2563eb",
+      });
+
       setSpacesData([]);
       setResultsCount(0);
     }
@@ -73,7 +90,13 @@ export default function DashboardPage() {
       await fetchSpaces();
     } catch (err) {
       console.error("Erro ao deletar espaço:", err);
-      alert("Erro ao deletar espaço. Tente novamente.");
+
+      Swal.fire({
+        icon: "error",
+        title: "Erro ao deletar",
+        text: "Não foi possível deletar este espaço. Tente novamente.",
+        confirmButtonColor: "#2563eb",
+      });
     }
   };
 
@@ -153,7 +176,6 @@ export default function DashboardPage() {
               user_id={userId}
               onClose={() => setOpenPopup(false)}
               onSuccess={() => {
-                // aqui você pode dar um fetchSpaces() depois que criar reserva
                 setOpenPopup(false);
               }}
             />

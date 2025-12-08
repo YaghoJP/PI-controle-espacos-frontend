@@ -1,5 +1,9 @@
 import { API_BASE_URL } from "./localhost";
+import Swal from "sweetalert2";
 
+// ===============================
+// CREATE RESERVATION
+// ===============================
 export async function handlerCreateReservation(payload: {
   user_id: number;
   space_id: number;
@@ -17,9 +21,7 @@ export async function handlerCreateReservation(payload: {
     "Content-Type": "application/json",
   };
 
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
-  }
+  if (token) headers["Authorization"] = `Bearer ${token}`;
 
   const res = await fetch(`${API_BASE_URL}/reservations`, {
     method: "POST",
@@ -27,39 +29,36 @@ export async function handlerCreateReservation(payload: {
     body: JSON.stringify(payload),
   });
 
-  const rawText = await res.text(); // pega resposta como texto primeiro
+  const rawText = await res.text();
   let data: any = null;
 
-  // tenta parsear como JSON, se der
   try {
     data = rawText ? JSON.parse(rawText) : null;
-  } catch {
-    data = null;
-  }
+  } catch {}
 
   if (!res.ok) {
-    console.error("Erro ao criar reserva:", rawText || data);
-
-    // tenta achar a melhor mensagem possível
     let message =
       data?.message ||
       data?.error ||
-      rawText || // se o backend mandar texto puro, usamos ele
+      rawText ||
       `Erro ao criar reserva (status ${res.status})`;
 
-    // garante que é string
-    if (typeof message !== "string") {
-      message = `Erro ao criar reserva (status ${res.status})`;
-    }
+    Swal.fire({
+      title: "Erro ao Criar Reserva",
+      text: message,
+      icon: "error",
+      confirmButtonColor: "#d33",
+    });
 
     throw new Error(message);
   }
 
-  // se deu certo, devolve JSON (ou null se não tiver)
   return data;
 }
 
-
+// ===============================
+// CREATE SPACE
+// ===============================
 export async function handlerCreateSpace(space: {
   name: string;
   description: string;
@@ -67,7 +66,8 @@ export async function handlerCreateSpace(space: {
   available: boolean;
   imageUrl?: string | null;
 }) {
-  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  const token =
+    typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
@@ -81,60 +81,115 @@ export async function handlerCreateSpace(space: {
   });
 
   const raw = await res.text();
+
   if (!res.ok) {
-    console.error("Erro ao criar espaço:", res.status, raw);
+    Swal.fire({
+      title: "Erro ao Criar Espaço",
+      text: `Falha (${res.status}). Verifique os dados enviados.`,
+      icon: "error",
+      confirmButtonColor: "#d33",
+    });
+
     throw new Error(`Erro ao criar espaço (${res.status})`);
   }
 
   return raw ? JSON.parse(raw) : null;
 }
 
-
+// ===============================
+// DELETE RESERVATION
+// ===============================
 export async function handlerDeleteReservation(id: number) {
   const token = localStorage.getItem("token");
-  await fetch(API_BASE_URL + `/reservations/${id}`, {
-    method: "DELETE",
-    headers: {
-      headerAuthorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-  });
+
+  try {
+    const res = await fetch(API_BASE_URL + `/reservations/${id}`, {
+      method: "DELETE",
+      headers: {
+        headerAuthorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!res.ok) {
+      Swal.fire({
+        title: "Erro ao Deletar",
+        text: "Não foi possível excluir a reserva.",
+        icon: "error",
+      });
+    }
+  } catch (err) {
+    Swal.fire({
+      title: "Erro ao Deletar",
+      text: "Ocorreu um erro inesperado.",
+      icon: "error",
+    });
+    console.error(err);
+  }
 }
 
+// ===============================
+// LOGIN
+// ===============================
 export async function handlerLogin(email: string, password: string) {
   const res = await fetch(`${API_BASE_URL}/session`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password }),
   });
 
-  if (!res.ok) return null;
+  if (!res.ok) {
+    Swal.fire({
+      title: "Falha no Login",
+      text: "Email ou senha incorretos.",
+      icon: "error",
+      confirmButtonColor: "#d33",
+    });
+    return null;
+  }
 
   const data = await res.json();
-
-  console.log("LOGIN RAW:", data);
-
   return {
     token: data.token,
     id: data.id,
-    role: data.role, 
+    role: data.role,
   };
 }
 
-
+// ===============================
+// DELETE SPACE
+// ===============================
 export async function handlerDeleteSpace(id: number) {
   const token = localStorage.getItem("token");
-  await fetch(API_BASE_URL + `/spaces/${id}`, {
-    method: "DELETE",
-    headers: {
-      headerAuthorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-  });
+
+  try {
+    const res = await fetch(API_BASE_URL + `/spaces/${id}`, {
+      method: "DELETE",
+      headers: {
+        headerAuthorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!res.ok) {
+      Swal.fire({
+        title: "Erro ao Deletar Espaço",
+        text: "Verifique se o espaço não está vinculado a reservas.",
+        icon: "error",
+      });
+    }
+  } catch (err) {
+    Swal.fire({
+      title: "Erro ao Deletar Espaço",
+      text: "Erro inesperado ao tentar excluir.",
+      icon: "error",
+    });
+  }
 }
 
+// ===============================
+// CREATE USER
+// ===============================
 export async function handlerCreateUser(user: {
   name: string;
   email: string;
@@ -142,16 +197,9 @@ export async function handlerCreateUser(user: {
   role: string;
 }) {
   try {
-
-
-    //const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-
-    const headers: Record<string,string> = {
+    const headers: Record<string, string> = {
       "Content-Type": "application/json",
     };
-
-    // só adicionar Authorization se houver token
-    //if (token) headers["Authorization"] = `Bearer ${token}`;
 
     const res = await fetch(`${API_BASE_URL}/user`, {
       method: "POST",
@@ -159,18 +207,34 @@ export async function handlerCreateUser(user: {
       body: JSON.stringify(user),
     });
 
-    const data = await res.json(); 
+    const data = await res.json();
 
     if (!res.ok) {
-      
+      Swal.fire({
+        title: "Erro ao Criar Usuário",
+        text: data?.message ?? "Tente novamente mais tarde.",
+        icon: "error",
+      });
+
       throw new Error(data?.message ?? `Erro ${res.status}`);
     }
 
-    console.log("create user response:", data);
-    return data; 
+    Swal.fire({
+      title: "Usuário Criado!",
+      text: "O usuário foi registrado com sucesso.",
+      icon: "success",
+    });
+
+    return data;
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
-    console.error("handlerCreateUser failed:", message);
-    throw err; 
+
+    Swal.fire({
+      title: "Erro",
+      text: message,
+      icon: "error",
+    });
+
+    throw err;
   }
 }

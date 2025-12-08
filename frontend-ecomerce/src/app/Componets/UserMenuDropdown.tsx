@@ -1,4 +1,3 @@
-// src/app/Componets/UserMenuDropdown.tsx
 "use client";
 
 import { useState, useRef, useEffect } from "react";
@@ -6,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { LogOut, Calendar, ChevronDown } from "lucide-react";
 import { API_BASE_URL } from "../Service/localhost";
+import Swal from "sweetalert2"; // 🔥 ADICIONADO
 
 type Props = {
   userName?: string | null;
@@ -48,9 +48,16 @@ export default function UserMenuDropdown({ userName = "Usuário", initials = "US
         const json = await res.json();
         const data = json?.data ?? json;
 
-        if (data?.email) setEmail(data.email);
+        if (data?.email) {
+          setEmail(data.email);
+        }
       } catch (err) {
-        console.warn("Erro ao buscar email:", err);
+        Swal.fire({
+          icon: "warning",
+          title: "Aviso",
+          text: "Não foi possível carregar seu e-mail agora.",
+          confirmButtonColor: "#2563eb",
+        });
       }
     })();
   }, []);

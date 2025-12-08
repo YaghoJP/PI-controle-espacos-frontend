@@ -1,8 +1,8 @@
-// src/app/TelaReservas/page.tsx
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
 import { Filter } from "lucide-react";
+import Swal from "sweetalert2"; // <-- IMPORTANTE
 
 import NavbarAdmin from "../Componets/NavbarAdmin";
 import SpaceReserva from "../Componets/SpaceReserva";
@@ -10,7 +10,7 @@ import ReservationPopup from "../Componets/PopUpReserva";
 
 import { API_BASE_URL } from "../Service/localhost";
 import { handlerDeleteReservation } from "../Service/service";
-import { Reservation } from "../Interfaces"; // interface da reserva
+import { Reservation } from "../Interfaces";
 
 export default function TelaReservasPage() {
   const [reservations, setReservations] = useState<Reservation[]>([]);
@@ -29,15 +29,10 @@ export default function TelaReservasPage() {
     if (typeof window === "undefined") return;
 
     const storedUserId = localStorage.getItem("user_id");
-    const storedRole = localStorage.getItem("role"); // ajusta aqui se o teu projeto usar outro nome
+    const storedRole = localStorage.getItem("role");
 
-    if (storedUserId) {
-      setUserId(Number(storedUserId));
-    }
-
-    if (storedRole === "admin") {
-      setIsAdmin(true);
-    }
+    if (storedUserId) setUserId(Number(storedUserId));
+    if (storedRole === "admin") setIsAdmin(true);
   }, []);
 
   // Buscar reservas da API
@@ -52,9 +47,7 @@ export default function TelaReservasPage() {
       const headers: Record<string, string> = {
         "Content-Type": "application/json",
       };
-      if (token) {
-        headers["Authorization"] = `Bearer ${token}`;
-      }
+      if (token) headers["Authorization"] = `Bearer ${token}`;
 
       const res = await fetch(`${API_BASE_URL}/reservations`, {
         method: "GET",
@@ -67,15 +60,19 @@ export default function TelaReservasPage() {
       try {
         raw = rawText ? JSON.parse(rawText) : null;
       } catch (e) {
-        console.warn("Resposta /reservations não é JSON:", rawText);
         raw = rawText;
       }
 
       if (!res.ok) {
-        console.error("Erro ao buscar reservas:", res.status, raw);
+        Swal.fire({
+          icon: "error",
+          title: "Erro ao carregar reservas",
+          text: raw?.message || "Não foi possível carregar as reservas.",
+        });
+
         setReservations([]);
         setResultsCount(0);
-        setError("Não foi possível carregar as reservas.");
+        setError("Erro ao carregar reservas.");
         return;
       }
 
@@ -87,11 +84,16 @@ export default function TelaReservasPage() {
 
       setReservations(list);
       setResultsCount(list.length);
-    } catch (err) {
-      console.error("Erro ao buscar reservas:", err);
-      setError("Não foi possível carregar as reservas. Tente novamente.");
+    } catch (err: any) {
+      Swal.fire({
+        icon: "error",
+        title: "Erro inesperado",
+        text: err?.message || "Não foi possível carregar as reservas.",
+      });
+
       setReservations([]);
       setResultsCount(0);
+      setError("Erro ao carregar reservas.");
     } finally {
       setIsLoading(false);
     }
@@ -101,7 +103,7 @@ export default function TelaReservasPage() {
     fetchReservations();
   }, [fetchReservations]);
 
-  // Filtro fake só pra manter teu comportamento anterior
+  // Filtro fake (mantido)
   const handleFilterChange = () => {
     if (!reservations.length) {
       setResultsCount(0);
@@ -115,23 +117,35 @@ export default function TelaReservasPage() {
   const handleDelete = async (id: number) => {
     try {
       await handlerDeleteReservation(id);
+
+      Swal.fire({
+        icon: "success",
+        title: "Reserva removida",
+        timer: 1500,
+        showConfirmButton: false,
+      });
+
       await fetchReservations();
-    } catch (err) {
-      console.error("Erro ao deletar reserva:", err);
-      alert("Erro ao deletar reserva. Tente novamente.");
+    } catch (err: any) {
+      Swal.fire({
+        icon: "error",
+        title: "Erro ao deletar reserva",
+        text: err?.message || "Tente novamente.",
+      });
     }
   };
 
-  // Abrir popup de reserva (apenas admin)
+  // Abrir popup somente para admin
   const handleOpenPopup = (reservation: Reservation) => {
-    if (!isAdmin) return; // segurança extra
-    setSelectedSpaceId(reservation.space_id); // assumindo que Reservation tem space_id
+    if (!isAdmin) return;
+    setSelectedSpaceId(reservation.space_id);
     setOpenPopup(true);
   };
 
   return (
     <>
       <NavbarAdmin />
+
       <main className="max-w-7xl mx-auto p-4 md:p-8">
         <header className="mb-8">
           <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">
@@ -188,26 +202,20 @@ export default function TelaReservasPage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-              {Array.isArray(reservations) &&
-                reservations.map((reservation) => (
-                  <div
-                    key={reservation.id}
-                    // Apenas admin pode clicar para abrir popup
-                    onClick={() => handleOpenPopup(reservation)}
-                    className={isAdmin ? "cursor-pointer" : ""}
-                  >
-                    <SpaceReserva
-                      space={reservation}
-                      onDelete={handleDelete}
-                    />
-                  </div>
-                ))}
+              {reservations.map((reservation) => (
+                <div
+                  key={reservation.id}
+                  onClick={() => handleOpenPopup(reservation)}
+                  className={isAdmin ? "cursor-pointer" : ""}
+                >
+                  <SpaceReserva space={reservation} onDelete={handleDelete} />
+                </div>
+              ))}
             </div>
           )}
         </div>
       </main>
 
-      {/* ReservationPopup só aparece se for admin, tiver userId e espaço selecionado */}
       {isAdmin && openPopup && userId && selectedSpaceId && (
         <ReservationPopup
           open={openPopup}
@@ -216,7 +224,7 @@ export default function TelaReservasPage() {
           onClose={() => setOpenPopup(false)}
           onSuccess={() => {
             setOpenPopup(false);
-            fetchReservations(); // recarrega lista depois de criar nova reserva
+            fetchReservations();
           }}
         />
       )}

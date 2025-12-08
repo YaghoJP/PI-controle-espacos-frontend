@@ -9,6 +9,7 @@ import { Filter } from "lucide-react";
 import { API_BASE_URL } from "../Service/localhost";
 import { handlerDeleteSpace } from "../Service/service";
 import ReservationPopup from "../Componets/PopUpReserva";
+import Swal from "sweetalert2";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -18,27 +19,23 @@ export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  // 👉 mesmo comportamento do outro Dashboard:
   const [userId, setUserId] = useState<number | undefined>();
   const [spaceId, setSpaceId] = useState<number | undefined>();
   const [openPopup, setOpenPopup] = useState<boolean>(false);
 
-  // carrega user_id do localStorage
+  // Carrega user_id
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const stored = localStorage.getItem("user_id");
-      if (stored) {
-        setUserId(Number(stored));
-      }
-    }
+    const stored = typeof window !== "undefined" ? localStorage.getItem("user_id") : null;
+    if (stored) setUserId(Number(stored));
   }, []);
 
-  // agora handleReserve só abre o popup
+  // Abre popup
   const handleReserve = (space: Space) => {
     setSpaceId(space.id);
     setOpenPopup(true);
   };
 
+  // Busca espaços
   const fetchSpaces = useCallback(async () => {
     setIsLoading(true);
     setError(null);
@@ -58,21 +55,23 @@ export default function DashboardPage() {
       });
 
       if (res.status === 401 || res.status === 403) {
-        console.warn("Usuário não autenticado (401/403). Redirecionando para login.");
+        Swal.fire({
+          icon: "warning",
+          title: "Sessão expirada",
+          text: "Faça login novamente para continuar.",
+        });
         router.push("/TelaLogin");
         return;
       }
 
       const rawText = await res.text();
       let raw: any = null;
+
       try {
         raw = rawText ? JSON.parse(rawText) : null;
-      } catch (e) {
-        console.warn("Resposta /spaces não é JSON:", rawText);
+      } catch {
         raw = rawText;
       }
-
-      console.log("GET /spaces -> status:", res.status, "raw:", raw);
 
       const list: Space[] = Array.isArray(raw)
         ? raw
@@ -84,7 +83,12 @@ export default function DashboardPage() {
       setResultsCount(list.length);
     } catch (err) {
       console.error("Erro ao buscar espaços:", err);
-      setError("Não foi possível carregar os espaços. Tente novamente.");
+      setError("Não foi possível carregar os espaços.");
+      Swal.fire({
+        icon: "error",
+        title: "Erro ao carregar",
+        text: "Não foi possível carregar os espaços. Tente novamente.",
+      });
       setSpacesData([]);
       setResultsCount(0);
     } finally {
@@ -96,19 +100,47 @@ export default function DashboardPage() {
     fetchSpaces();
   }, [fetchSpaces]);
 
+  // Delete com confirmação
   const handleDelete = async (id: number) => {
+    const confirm = await Swal.fire({
+      title: "Tem certeza?",
+      text: "Isso vai excluir o espaço permanentemente.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Sim, excluir",
+      cancelButtonText: "Cancelar",
+    });
+
+    if (!confirm.isConfirmed) return;
+
     try {
       await handlerDeleteSpace(id);
+
+      Swal.fire({
+        icon: "success",
+        title: "Excluído!",
+        text: "O espaço foi removido com sucesso.",
+      });
+
       await fetchSpaces();
     } catch (err) {
       console.error("Erro ao deletar espaço:", err);
-      alert("Erro ao deletar espaço. Tente novamente.");
+
+      Swal.fire({
+        icon: "error",
+        title: "Erro ao excluir",
+        text: "Não foi possível excluir o espaço. Tente novamente.",
+      });
     }
   };
 
   const handleFilterChange = () => {
     const randomCount =
-      spacesData.length > 0 ? Math.floor(Math.random() * spacesData.length) + 1 : 0;
+      spacesData.length > 0
+        ? Math.floor(Math.random() * spacesData.length) + 1
+        : 0;
     setResultsCount(randomCount);
   };
 
@@ -133,21 +165,6 @@ export default function DashboardPage() {
             </h2>
             <div className="text-sm text-slate-500">
               Exibindo <strong className="text-gray-900">{resultsCount}</strong> espaços
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium text-slate-600">
-                Tipo de Espaço
-              </label>
-              <select
-                onChange={handleFilterChange}
-                className="bg-gray-50 p-2.5 border-2 border-slate-200 rounded-lg text-sm transition-all focus:outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-600/10 text-gray-900"
-              >
-                <option>Todos os tipos</option>
-                <option>Salão de Festas</option>
-              </select>
             </div>
           </div>
         </section>
@@ -178,12 +195,12 @@ export default function DashboardPage() {
               </p>
 
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                {(spacesData || []).map((space) => (
+                {spacesData.map((space) => (
                   <SpaceCard
                     key={space.id}
                     space={space}
                     onDelete={() => handleDelete(space.id)}
-                    onReservation={() => handleReserve(space)} // 👈 abre popup
+                    onReservation={() => handleReserve(space)}
                   />
                 ))}
               </div>
@@ -197,18 +214,13 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {/* 👉 mesmo comportamento do Dashboard Admin */}
         {openPopup && spaceId && userId && (
           <ReservationPopup
             open={openPopup}
             space_id={spaceId}
             user_id={userId}
             onClose={() => setOpenPopup(false)}
-            onSuccess={() => {
-              setOpenPopup(false);
-              // se quiser, pode chamar fetchSpaces() aqui depois de reservar
-              // fetchSpaces();
-            }}
+            onSuccess={() => setOpenPopup(false)}
           />
         )}
       </main>

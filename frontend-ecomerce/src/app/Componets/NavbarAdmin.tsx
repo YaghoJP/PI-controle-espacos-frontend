@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { API_BASE_URL } from "../Service/localhost";
 import Image from "next/image";
 import UserMenuDropdown from "./UserMenuDropdown";
+import Swal from "sweetalert2";
 
 interface NavLinkProps {
   href: string;
@@ -59,7 +60,15 @@ export default function NavbarAdmin() {
         });
 
         if (!res.ok) {
-          console.error("Falha ao buscar usuário:", await res.text());
+          const errorText = await res.text();
+
+          Swal.fire({
+            icon: "error",
+            title: "Erro ao buscar usuário",
+            text: errorText || "Falha inesperada ao carregar os dados.",
+            confirmButtonColor: "#2563eb",
+          });
+
           return;
         }
 
@@ -75,7 +84,12 @@ export default function NavbarAdmin() {
         setInitials(ini);
 
       } catch (err) {
-        console.error("Erro ao carregar usuário:", err);
+        Swal.fire({
+          icon: "error",
+          title: "Erro ao carregar usuário",
+          text: err instanceof Error ? err.message : "Algo deu errado no carregamento.",
+          confirmButtonColor: "#2563eb",
+        });
       }
     };
 
@@ -105,7 +119,7 @@ export default function NavbarAdmin() {
         <NavLink href="/TelaCadastro">Cadastrar Usuários</NavLink>
       </div>
 
-      {/* MENU DO USUÁRIO (DROPDOWN) */}
+      {/* MENU DO USUÁRIO */}
       <UserMenuDropdown
         userName={userName}
         initials={initials}

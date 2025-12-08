@@ -5,6 +5,8 @@ import Navbar from "../Componets/Navbar";
 import { useRouter } from "next/navigation";
 import { API_BASE_URL } from "../Service/localhost";
 import ReservaModal from "../Componets/NewReservationModal";
+import Swal from "sweetalert2";
+
 
 const statusMap = {
   confirmed: { label: "Confirmada", className: "confirmed" },
@@ -156,6 +158,12 @@ export default function MyReservationsPage() {
       setReservations(list.map(mapReservation));
     } catch (error) {
       console.error(error);
+      Swal.fire({
+        icon: "error",
+        title: "Erro ao carregar reservas",
+        text: "Tente novamente em instantes.",
+        confirmButtonColor: "#2563eb",
+      });
       setError("Erro ao carregar reservas.");
     } finally {
       setIsLoading(false);
@@ -169,7 +177,19 @@ export default function MyReservationsPage() {
   // ------------------------------------------
   // Cancelar reserva
   const handleCancel = async (id: string) => {
-    if (!confirm("Deseja realmente cancelar esta reserva?")) return;
+    const result = await Swal.fire({
+      title: "Cancelar reserva?",
+      text: "Essa ação não poderá ser desfeita.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#dc2626",
+      cancelButtonColor: "#6b7280",
+      confirmButtonText: "Sim, cancelar",
+      cancelButtonText: "Voltar",
+    });
+    
+    if (!result.isConfirmed) return;
+    
 
     try {
       const token = localStorage.getItem("token");
@@ -185,7 +205,12 @@ export default function MyReservationsPage() {
 
       fetchReservations();
     } catch (error) {
-      alert("Erro ao cancelar.");
+      Swal.fire({
+        icon: "error",
+        title: "Erro ao cancelar",
+        text: "Não foi possível cancelar a reserva.",
+        confirmButtonColor: "#dc2626",
+      });
     }
   };
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Swal from "sweetalert2";
 import { handlerCreateReservation } from "../Service/service";
 
 interface ReservationPopupProps {
@@ -8,7 +9,7 @@ interface ReservationPopupProps {
   user_id?: number | null;
   space_id?: number;
   onClose: () => void;
-  onSuccess?: () => void; // opcional: recarregar lista, mostrar toast etc.
+  onSuccess?: () => void;
 }
 
 export default function ReservationPopup({
@@ -18,42 +19,48 @@ export default function ReservationPopup({
   onClose,
   onSuccess,
 }: ReservationPopupProps) {
-  const [startTime, setStartTime] = useState(""); // ex: "2025-12-11T14:00"
-  const [endTime, setEndTime] = useState("");     // ex: "2025-12-11T16:00"
+  const [startTime, setStartTime] = useState("");
+  const [endTime, setEndTime] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  if (!open) return null; // não renderiza se não estiver aberto
+  if (!open) return null;
 
   const handleConfirm = async () => {
     if (!startTime || !endTime) {
-      alert("Preencha os horários de início e término.");
+      Swal.fire({
+        icon: "warning",
+        title: "Campos obrigatórios",
+        text: "Preencha os horários de início e término.",
+      });
       return;
     }
 
     if (!user_id || !space_id) {
-      alert("Erro interno: usuário ou espaço não informado.");
+      Swal.fire({
+        icon: "error",
+        title: "Erro interno",
+        text: "Usuário ou espaço não informado.",
+      });
       return;
     }
 
-    // Validação básica: fim depois do início
     if (new Date(endTime) <= new Date(startTime)) {
-      alert("O horário de término deve ser depois do horário de início.");
+      Swal.fire({
+        icon: "warning",
+        title: "Horário inválido",
+        text: "O horário de término deve ser depois do horário de início.",
+      });
       return;
     }
 
     try {
       setIsLoading(true);
 
-      // startTime e endTime vêm no formato "YYYY-MM-DDTHH:MM"
       const startDate = new Date(startTime);
       const endDate = new Date(endTime);
-
-      // Extrair só a parte da data para usar como reservation_date
-      // "2025-12-11T14:00" -> "2025-12-11"
       const [datePart] = startTime.split("T");
       const reservationDate = new Date(`${datePart}T00:00:00`);
 
-      // Montar o payload exatamente como o backend espera
       await handlerCreateReservation({
         user_id,
         space_id,
@@ -65,16 +72,26 @@ export default function ReservationPopup({
         rejection_reason: null,
       });
 
-      alert("Reserva criada com sucesso!");
+      Swal.fire({
+        icon: "success",
+        title: "Reserva criada!",
+        text: "Sua reserva foi registrada com sucesso.",
+        confirmButtonColor: "#2563eb",
+      });
 
       setStartTime("");
       setEndTime("");
 
       if (onSuccess) onSuccess();
       onClose();
+
     } catch (err: any) {
-      console.error("Erro ao criar reserva:", err);
-      alert(err?.message || "Erro ao criar a reserva. Tente novamente.");
+      Swal.fire({
+        icon: "error",
+        title: "Erro ao criar reserva",
+        text: err?.message || "Ocorreu um erro. Tente novamente.",
+        confirmButtonColor: "#dc2626",
+      });
     } finally {
       setIsLoading(false);
     }
