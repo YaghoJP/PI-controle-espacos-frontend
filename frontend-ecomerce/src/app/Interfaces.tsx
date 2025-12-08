@@ -7,3 +7,11 @@ export interface Reservation {
     end_time: string;
     reservation_date: string;
   }
+
+
+export interface User {
+  id: number;
+  name: string;
+  email: string;
+  role?: string | null;
+};

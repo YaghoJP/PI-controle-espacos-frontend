@@ -8,6 +8,7 @@ import SpaceCard, { Space } from "../Componets/SpaceCard";
 import { Filter } from "lucide-react";
 import { API_BASE_URL } from "../Service/localhost";
 import { handlerDeleteSpace } from "../Service/service";
+import ReservationPopup from "../Componets/PopUpReserva";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -17,9 +18,25 @@ export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
+  // 👉 mesmo comportamento do outro Dashboard:
+  const [userId, setUserId] = useState<number | undefined>();
+  const [spaceId, setSpaceId] = useState<number | undefined>();
+  const [openPopup, setOpenPopup] = useState<boolean>(false);
+
+  // carrega user_id do localStorage
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("user_id");
+      if (stored) {
+        setUserId(Number(stored));
+      }
+    }
+  }, []);
+
+  // agora handleReserve só abre o popup
   const handleReserve = (space: Space) => {
-    // exemplo simples: mandar pra tela de reservas com query param
-    router.push(`/TelaReservas?space_id=${space.id}`);
+    setSpaceId(space.id);
+    setOpenPopup(true);
   };
 
   const fetchSpaces = useCallback(async () => {
@@ -27,8 +44,8 @@ export default function DashboardPage() {
     setError(null);
 
     try {
-      // pega token do localStorage (só client-side)
-      const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+      const token =
+        typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
       const headers: Record<string, string> = {
         "Content-Type": "application/json",
@@ -40,17 +57,13 @@ export default function DashboardPage() {
         headers,
       });
 
-      // se não autorizado -> redireciona para login (limpar token opcional)
       if (res.status === 401 || res.status === 403) {
         console.warn("Usuário não autenticado (401/403). Redirecionando para login.");
-        // opcional: limpar token
-        // localStorage.removeItem("token");
         router.push("/TelaLogin");
         return;
       }
 
       const rawText = await res.text();
-      // tenta parsear JSON (seguro para respostas inválidas)
       let raw: any = null;
       try {
         raw = rawText ? JSON.parse(rawText) : null;
@@ -59,10 +72,8 @@ export default function DashboardPage() {
         raw = rawText;
       }
 
-      // DEBUG: log da resposta bruta (remova em produção se quiser)
       console.log("GET /spaces -> status:", res.status, "raw:", raw);
 
-      // Normaliza resposta: aceita array direto ou { data: [...] } ou { success: true, data: [...] }
       const list: Space[] = Array.isArray(raw)
         ? raw
         : Array.isArray(raw?.data)
@@ -83,13 +94,11 @@ export default function DashboardPage() {
 
   useEffect(() => {
     fetchSpaces();
-    // não incluir spacesData/resultsCount nas deps para evitar loop
   }, [fetchSpaces]);
 
   const handleDelete = async (id: number) => {
     try {
       await handlerDeleteSpace(id);
-      // refazer fetch após exclusão para atualizar UI
       await fetchSpaces();
     } catch (err) {
       console.error("Erro ao deletar espaço:", err);
@@ -129,7 +138,9 @@ export default function DashboardPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium text-slate-600">Tipo de Espaço</label>
+              <label className="text-sm font-medium text-slate-600">
+                Tipo de Espaço
+              </label>
               <select
                 onChange={handleFilterChange}
                 className="bg-gray-50 p-2.5 border-2 border-slate-200 rounded-lg text-sm transition-all focus:outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-600/10 text-gray-900"
@@ -166,17 +177,16 @@ export default function DashboardPage() {
                 disponíveis
               </p>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-              {(spacesData || []).map((space) => (
-                <SpaceCard
-                  key={space.id}
-                  space={space}
-                  onDelete={() => handleDelete(space.id)}
-                  onReservation={() => handleReserve(space)}   // 👈 AQUI AGORA PASSA A FUNÇÃO
-                />
-              ))}
-            </div>
-
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                {(spacesData || []).map((space) => (
+                  <SpaceCard
+                    key={space.id}
+                    space={space}
+                    onDelete={() => handleDelete(space.id)}
+                    onReservation={() => handleReserve(space)} // 👈 abre popup
+                  />
+                ))}
+              </div>
 
               {spacesData.length === 0 && (
                 <div className="mt-6 bg-white rounded-2xl shadow-xl p-6 text-center">
@@ -186,6 +196,21 @@ export default function DashboardPage() {
             </>
           )}
         </div>
+
+        {/* 👉 mesmo comportamento do Dashboard Admin */}
+        {openPopup && spaceId && userId && (
+          <ReservationPopup
+            open={openPopup}
+            space_id={spaceId}
+            user_id={userId}
+            onClose={() => setOpenPopup(false)}
+            onSuccess={() => {
+              setOpenPopup(false);
+              // se quiser, pode chamar fetchSpaces() aqui depois de reservar
+              // fetchSpaces();
+            }}
+          />
+        )}
       </main>
     </>
   );

@@ -18,8 +18,8 @@ export default function ReservationPopup({
   onClose,
   onSuccess,
 }: ReservationPopupProps) {
-  const [startTime, setStartTime] = useState("");
-  const [endTime, setEndTime] = useState("");
+  const [startTime, setStartTime] = useState(""); // ex: "2025-12-11T14:00"
+  const [endTime, setEndTime] = useState("");     // ex: "2025-12-11T16:00"
   const [isLoading, setIsLoading] = useState(false);
 
   if (!open) return null; // não renderiza se não estiver aberto
@@ -35,17 +35,34 @@ export default function ReservationPopup({
       return;
     }
 
+    // Validação básica: fim depois do início
+    if (new Date(endTime) <= new Date(startTime)) {
+      alert("O horário de término deve ser depois do horário de início.");
+      return;
+    }
+
     try {
       setIsLoading(true);
 
-      const startISO = new Date(startTime).toISOString();
-      const endISO = new Date(endTime).toISOString();
+      // startTime e endTime vêm no formato "YYYY-MM-DDTHH:MM"
+      const startDate = new Date(startTime);
+      const endDate = new Date(endTime);
 
+      // Extrair só a parte da data para usar como reservation_date
+      // "2025-12-11T14:00" -> "2025-12-11"
+      const [datePart] = startTime.split("T");
+      const reservationDate = new Date(`${datePart}T00:00:00`);
+
+      // Montar o payload exatamente como o backend espera
       await handlerCreateReservation({
         user_id,
         space_id,
-        start_time: startISO,
-        end_time: endISO,
+        reservation_date: reservationDate.toISOString(),
+        start_time: startDate.toISOString(),
+        end_time: endDate.toISOString(),
+        status: "pending",
+        approved_by: null,
+        rejection_reason: null,
       });
 
       alert("Reserva criada com sucesso!");

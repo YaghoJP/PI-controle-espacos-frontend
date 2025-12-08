@@ -152,7 +152,7 @@ export default function DashboardPage() {
               space_id={spaceId}
               user_id={userId}
               onClose={() => setOpenPopup(false)}
-              onConfirm={() => {
+              onSuccess={() => {
                 // aqui você pode dar um fetchSpaces() depois que criar reserva
                 setOpenPopup(false);
               }}

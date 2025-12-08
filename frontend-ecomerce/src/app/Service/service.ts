@@ -3,8 +3,12 @@ import { API_BASE_URL } from "./localhost";
 export async function handlerCreateReservation(payload: {
   user_id: number;
   space_id: number;
-  start_time: string; // ISO
-  end_time: string;   // ISO
+  reservation_date: string;
+  start_time: string;
+  end_time: string;
+  status?: string;
+  approved_by?: number | null;
+  rejection_reason?: string | null;
 }) {
   const token =
     typeof window !== "undefined" ? localStorage.getItem("token") : null;
@@ -23,15 +27,38 @@ export async function handlerCreateReservation(payload: {
     body: JSON.stringify(payload),
   });
 
-  const data = await res.json().catch(() => null);
+  const rawText = await res.text(); // pega resposta como texto primeiro
+  let data: any = null;
 
-  if (!res.ok) {
-    console.error("Erro ao criar reserva:", data);
-    throw new Error(data?.message || `Erro ao criar reserva (status ${res.status})`);
+  // tenta parsear como JSON, se der
+  try {
+    data = rawText ? JSON.parse(rawText) : null;
+  } catch {
+    data = null;
   }
 
+  if (!res.ok) {
+    console.error("Erro ao criar reserva:", rawText || data);
+
+    // tenta achar a melhor mensagem possível
+    let message =
+      data?.message ||
+      data?.error ||
+      rawText || // se o backend mandar texto puro, usamos ele
+      `Erro ao criar reserva (status ${res.status})`;
+
+    // garante que é string
+    if (typeof message !== "string") {
+      message = `Erro ao criar reserva (status ${res.status})`;
+    }
+
+    throw new Error(message);
+  }
+
+  // se deu certo, devolve JSON (ou null se não tiver)
   return data;
 }
+
 
 export async function handlerCreateSpace(space: {
   name: string;
