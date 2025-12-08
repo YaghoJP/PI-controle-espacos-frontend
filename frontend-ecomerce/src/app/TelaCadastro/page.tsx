@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { handlerCreateUser } from "../Service/service";
 import NavbarAdmin from "../Componets/NavbarAdmin";
+import Swal from "sweetalert2";
 
 export default function Cadastro() {
   const router = useRouter();
@@ -18,12 +19,9 @@ export default function Cadastro() {
 
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
 
   const handleChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
-    if (error) setError(null);
   };
 
   function validate() {
@@ -37,11 +35,17 @@ export default function Cadastro() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setError(null);
-    setSuccess(null);
 
     const msg = validate();
-    if (msg) return setError(msg);
+    if (msg) {
+      Swal.fire({
+        icon: "error",
+        title: "Erro no formulário",
+        text: msg,
+        confirmButtonColor: "#dc2626",
+      });
+      return;
+    }
 
     setIsLoading(true);
 
@@ -53,7 +57,12 @@ export default function Cadastro() {
         role: formData.role,
       });
 
-      setSuccess("Conta criada com sucesso!");
+      Swal.fire({
+        icon: "success",
+        title: "Conta criada!",
+        text: "O usuário foi cadastrado com sucesso.",
+        confirmButtonColor: "#2563eb",
+      });
 
       setFormData({
         name: "",
@@ -63,9 +72,15 @@ export default function Cadastro() {
         role: "ASSOCIADO",
       });
 
-      setTimeout(() => router.push("/TelaLogin"), 2000);
+      setTimeout(() => router.push("/TelaLogin"), 1500);
+
     } catch (err: any) {
-      setError(err?.message || "Erro ao cadastrar");
+      Swal.fire({
+        icon: "error",
+        title: "Erro ao cadastrar",
+        text: err?.message || "Tente novamente mais tarde.",
+        confirmButtonColor: "#dc2626",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -73,12 +88,11 @@ export default function Cadastro() {
 
   return (
     <>
-      {/* TELA IGUAL CREATE SPACE */}
+      {/* NAVBAR ADICIONADO */}
+      <NavbarAdmin />
+
       <main className="max-w-3xl mx-auto p-6">
-        
-        <h1 className="text-3xl font-bold mb-6 text-slate-800">
-          Criar Usuário
-        </h1>
+        <h1 className="text-3xl font-bold mb-6 text-slate-800">Criar Usuário</h1>
 
         <form
           onSubmit={handleSubmit}
@@ -125,7 +139,7 @@ export default function Cadastro() {
               onChange={(e) => handleChange("password", e.target.value)}
               placeholder="Crie uma senha"
               required
-              className="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition"
+              className="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
             />
 
             <button
@@ -145,9 +159,7 @@ export default function Cadastro() {
             <input
               type={showPassword ? "text" : "password"}
               value={formData.confirmPassword}
-              onChange={(e) =>
-                handleChange("confirmPassword", e.target.value)
-              }
+              onChange={(e) => handleChange("confirmPassword", e.target.value)}
               placeholder="Repita a senha"
               required
               className={`w-full p-3 border rounded-xl outline-none transition
@@ -160,19 +172,6 @@ export default function Cadastro() {
               `}
             />
           </div>
-
-          {/* Mensagens */}
-          {error && (
-            <div className="p-3 bg-red-50 text-red-600 rounded-lg text-sm border border-red-100">
-              🚨 {error}
-            </div>
-          )}
-
-          {success && (
-            <div className="p-3 bg-green-50 text-green-600 rounded-lg text-sm border border-green-100">
-              ✅ {success}
-            </div>
-          )}
 
           <hr className="border-slate-100" />
 

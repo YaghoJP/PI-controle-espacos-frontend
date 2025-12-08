@@ -2,14 +2,15 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Swal from "sweetalert2";
 
 import { useRouter } from "next/navigation";
-import {handlerLogin} from "../Service/service"
+import { handlerLogin } from "../Service/service"
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false); 
+  const [isLoading, setIsLoading] = useState(false);
 
   const router = useRouter();
 
@@ -22,23 +23,31 @@ export default function LoginPage() {
       console.log("login response:", handler);
 
       if (!handler || !handler.token) {
-        alert("Credenciais inválidas. Tente novamente.");
-        return;
+        Swal.fire({
+          icon: "error",
+          title: "Login inválido",
+          text: "E-mail ou senha incorretos. Tente novamente.",
+          confirmButtonColor: "#2563eb",
+        });
       }
 
-      console.log("[DEBUG] handler.role bruto:", handler.role, typeof handler.role);
+      if (handler) {
+        console.log("[DEBUG] handler.role bruto:", handler.role, typeof handler.role);
+      }
 
-      const roleRaw = String(handler.role ?? "").trim();
+      const roleRaw = handler ? String(handler.role ?? "").trim() : "";
       const role = roleRaw.toUpperCase();
 
       console.log("[DEBUG] role normalizado:", `"${role}"`);
 
       // salva informações
-      localStorage.setItem("token", handler.token);
-      if (handler.role !== undefined && handler.role !== null) {
+      if (handler && handler.token) {
+        localStorage.setItem("token", handler.token);
+      }
+      if (handler && handler.role !== undefined && handler.role !== null) {
         localStorage.setItem("role", String(handler.role));
       }
-      if (handler.id !== undefined && handler.id !== null) {
+      if (handler && handler.id !== undefined && handler.id !== null) {
         localStorage.setItem("user_id", String(handler.id));
       }
 
@@ -52,12 +61,19 @@ export default function LoginPage() {
         router.push("/DashboardAdmin");
       } else {
         // fallback: se não corresponde a nada esperado, use role originalmente retornada
-        console.warn("Role não mapeada:", handler.role);
+        if (handler) {
+          console.warn("Role não mapeada:", handler.role);
+        }
         router.push("/Dashboard");
       }
     } catch (err) {
-      console.error("Erro no login:", err);
-      alert("Erro ao conectar com o servidor. Tente novamente mais tarde.");
+      Swal.fire({
+        icon: "error",
+        title: "Erro no servidor",
+        text: "Não foi possível conectar. Tente novamente mais tarde.",
+        confirmButtonColor: "#2563eb",
+      });
+
     } finally {
       setIsLoading(false);
     }
@@ -191,28 +207,6 @@ export default function LoginPage() {
             {isLoading ? "Entrando..." : "Entrar"}
           </button>
 
-          <div className="text-center mb-6">
-            <Link
-              href="/esqueci-senha"
-              className="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline"
-            >
-              Esqueci minha senha
-            </Link>
-          </div>
-          
-          <div className="flex items-center my-6">
-            <div className="flex-grow border-t border-gray-200"></div>
-            <span className="mx-4 text-sm text-gray-400">ou</span>
-            <div className="flex-grow border-t border-gray-200"></div>
-          </div>
-          <div className="text-center mt-4">
-            <Link
-              href="/TelaCadastro"
-              className="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline"
-            >
-              Criar uma conta
-            </Link>
-          </div>
         </form>
       </div>
     </div>

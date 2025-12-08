@@ -1,4 +1,3 @@
-// app/dashboard/page.tsx
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
@@ -6,19 +5,18 @@ import NavbarAdmin from "../Componets/NavbarAdmin";
 import UserCard from "../Componets/UserCard";
 import { API_BASE_URL } from "../Service/localhost";
 import { useRouter } from "next/navigation";
-// importa a interface User (ajuste o caminho se for diferente)
+import Swal from "sweetalert2";
 import type { User } from "../Interfaces";
 
 export default function DashboardPage() {
   const router = useRouter();
 
-  // ✅ aqui era o erro: precisa ser User[]
   const [users, setUsers] = useState<User[]>([]);
   const [resultsCount, setResultsCount] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  // deletar usuário
+  // 🗑️ Deletar usuário
   const onDelete = async (id: number) => {
     try {
       const token =
@@ -37,22 +35,33 @@ export default function DashboardPage() {
       });
 
       if (!response.ok) {
-        console.error("Erro ao deletar usuário:", response.statusText);
-        alert("Erro ao deletar usuário.");
+        Swal.fire({
+          icon: "error",
+          title: "Erro ao deletar usuário",
+          text: "Não foi possível deletar o usuário.",
+        });
         return;
       }
 
-      // atualiza lista local
       const updated = users.filter((u) => u.id !== id);
       setUsers(updated);
       setResultsCount(updated.length);
+
+      Swal.fire({
+        icon: "success",
+        title: "Usuário deletado!",
+        text: "O usuário foi removido com sucesso.",
+      });
     } catch (err) {
-      console.error("Erro ao deletar usuário:", err);
-      alert("Erro ao deletar usuário. Tente novamente.");
+      Swal.fire({
+        icon: "error",
+        title: "Erro ao deletar",
+        text: "Ocorreu um erro ao tentar deletar o usuário.",
+      });
     }
   };
 
-  // buscar todos os usuários
+  // 📌 Buscar usuários
   const fetchUsers = useCallback(async () => {
     setIsLoading(true);
     setError(null);
@@ -73,9 +82,12 @@ export default function DashboardPage() {
         headers,
       });
 
-      // se a rota é protegida e não autenticou
       if (response.status === 401 || response.status === 403) {
-        console.warn("Não autenticado ao buscar usuários. Redirecionando para login.");
+        Swal.fire({
+          icon: "warning",
+          title: "Sessão expirada",
+          text: "Faça login novamente para continuar.",
+        });
         router.push("/TelaLogin");
         return;
       }
@@ -86,7 +98,6 @@ export default function DashboardPage() {
       try {
         data = rawText ? JSON.parse(rawText) : null;
       } catch {
-        console.warn("Resposta /users não é JSON:", rawText);
         data = rawText;
       }
 
@@ -99,8 +110,12 @@ export default function DashboardPage() {
       setUsers(list);
       setResultsCount(list.length);
     } catch (err) {
-      console.error("Erro ao buscar usuários:", err);
-      setError("Não foi possível carregar os usuários. Tente novamente.");
+      setError("Não foi possível carregar os usuários.");
+      Swal.fire({
+        icon: "error",
+        title: "Erro ao carregar usuários",
+        text: "Tente novamente mais tarde.",
+      });
       setUsers([]);
       setResultsCount(0);
     } finally {

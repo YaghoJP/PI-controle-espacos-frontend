@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { X } from "lucide-react";
+import Swal from "sweetalert2"; 
 import { API_BASE_URL } from "../Service/localhost";
 
 interface Space {
@@ -54,8 +55,14 @@ export default function NewReservationModal({
       }));
 
       setSpaces(normalized);
+
     } catch (err) {
-      console.log("Erro ao carregar espaços", err);
+      Swal.fire({
+        icon: "error",
+        title: "Erro ao carregar espaços",
+        text: "Não foi possível carregar a lista de espaços.",
+        confirmButtonColor: "#2563eb"
+      });
     }
   };
 
@@ -63,7 +70,12 @@ export default function NewReservationModal({
     if (!startTime || !endTime) return false;
 
     if (startTime >= endTime) {
-      alert("A hora inicial não pode ser maior ou igual à final.");
+      Swal.fire({
+        icon: "warning",
+        title: "Horário inválido",
+        text: "A hora inicial não pode ser maior ou igual à hora final.",
+        confirmButtonColor: "#2563eb"
+      });
       return false;
     }
 
@@ -73,25 +85,37 @@ export default function NewReservationModal({
     const ini = h1 * 60 + m1;
     const fim = h2 * 60 + m2;
 
-    // Evento mínimo = 1 hora
     if (fim - ini < 60) {
-      alert("A reserva precisa ter pelo menos 1 hora.");
+      Swal.fire({
+        icon: "warning",
+        title: "Duração insuficiente",
+        text: "A reserva precisa ter pelo menos 1 hora.",
+        confirmButtonColor: "#2563eb"
+      });
       return false;
     }
 
-    // Intervalos de 30 em 30 minutos
     if ((fim - ini) % 30 !== 0) {
-      alert("Horários precisam obedecer intervalos de 30 minutos.");
+      Swal.fire({
+        icon: "warning",
+        title: "Intervalo inválido",
+        text: "Os horários devem obedecer intervalos de 30 minutos.",
+        confirmButtonColor: "#2563eb"
+      });
       return false;
     }
 
     return true;
   };
 
-
   const handleSubmit = async () => {
     if (!selectedSpace || !date || !startTime || !endTime) {
-      alert("Preencha todos os campos obrigatórios!");
+      Swal.fire({
+        icon: "warning",
+        title: "Campos obrigatórios",
+        text: "Preencha todos os campos obrigatórios!",
+        confirmButtonColor: "#2563eb"
+      });
       return;
     }
 
@@ -120,15 +144,34 @@ export default function NewReservationModal({
 
       if (!res.ok) {
         const error = await res.json();
-        alert(error.message || "Erro ao criar reserva.");
+
+        Swal.fire({
+          icon: "error",
+          title: "Erro ao criar reserva",
+          text: error.message || "Algo inesperado aconteceu.",
+          confirmButtonColor: "#2563eb"
+        });
+
         return;
       }
 
-      alert("Reserva criada com sucesso!");
+      Swal.fire({
+        icon: "success",
+        title: "Reserva criada!",
+        text: "Sua reserva foi registrada com sucesso.",
+        confirmButtonColor: "#2563eb"
+      });
+
       onClose();
       onCreated && onCreated();
+
     } catch (err) {
-      alert("Erro ao criar reserva.");
+      Swal.fire({
+        icon: "error",
+        title: "Erro inesperado",
+        text: "Não foi possível criar a reserva.",
+        confirmButtonColor: "#2563eb"
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -140,7 +183,7 @@ export default function NewReservationModal({
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 px-4">
       <div className="bg-white rounded-2xl shadow-xl max-w-xl w-full p-6 relative animate-fadeIn">
 
-        {/* BOTÃO FECHAR */}
+        {/* FECHAR */}
         <button
           onClick={onClose}
           className="absolute right-4 top-4 text-slate-500 hover:text-slate-800 transition"

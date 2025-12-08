@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Swal from "sweetalert2";
 import { ImagePathInput } from "../Componets/FileInput";
 import Navbar from "../Componets/NavbarAdmin";
 import { handlerCreateSpace } from "../Service/service";
@@ -24,8 +25,6 @@ export default function CreateSpacePage() {
   });
 
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
   const [imagePath, setImagePath] = useState<string>("");
 
   function handleChange<K extends keyof Space>(key: K, value: Space[K]) {
@@ -42,24 +41,33 @@ export default function CreateSpacePage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setError(null);
-    setSuccess(null);
 
-    const v = validate();
-    if (v) {
-      setError(v);
+    const validationError = validate();
+    if (validationError) {
+      Swal.fire({
+        icon: "warning",
+        title: "Campos inválidos",
+        text: validationError,
+      });
       return;
     }
 
     setLoading(true);
+
     try {
       const payload = {
         ...form,
-        imageUrl: imagePath || null, // 👈 agora bate com o backend
+        imageUrl: imagePath || null,
       };
 
-      const created = await handlerCreateSpace(payload);
-      setSuccess("Espaço criado com sucesso!");
+      await handlerCreateSpace(payload);
+
+      Swal.fire({
+        icon: "success",
+        title: "Espaço criado!",
+        text: "O espaço foi cadastrado com sucesso.",
+        confirmButtonColor: "#2563eb",
+      });
 
       setForm({
         name: "",
@@ -69,12 +77,15 @@ export default function CreateSpacePage() {
         imageUrl: null,
       });
       setImagePath("");
-
-      console.info("Created space:", created);
     } catch (err: unknown) {
-      console.error(err);
       const message = err instanceof Error ? err.message : String(err);
-      setError(message || "Erro ao criar espaço");
+
+      Swal.fire({
+        icon: "error",
+        title: "Erro ao criar espaço",
+        text: message || "Ocorreu um erro inesperado.",
+        confirmButtonColor: "#dc2626",
+      });
     } finally {
       setLoading(false);
     }
@@ -153,18 +164,6 @@ export default function CreateSpacePage() {
             </div>
           </div>
 
-          {/* Mensagens */}
-          {error && (
-            <div className="p-3 bg-red-50 text-red-600 rounded-lg text-sm font-medium border border-red-100">
-              🚨 {error}
-            </div>
-          )}
-          {success && (
-            <div className="p-3 bg-green-50 text-green-600 rounded-lg text-sm font-medium border border-green-100">
-              ✅ {success}
-            </div>
-          )}
-
           <hr className="border-slate-100" />
 
           {/* Botões */}
@@ -186,11 +185,15 @@ export default function CreateSpacePage() {
                   description: "",
                   capacity: 0,
                   available: true,
-                  imageUrl: null, // 👈 corrigido aqui
+                  imageUrl: null,
                 });
                 setImagePath("");
-                setError(null);
-                setSuccess(null);
+
+                Swal.fire({
+                  icon: "info",
+                  title: "Formulário limpo",
+                  text: "Os campos foram resetados.",
+                });
               }}
               disabled={loading}
             >

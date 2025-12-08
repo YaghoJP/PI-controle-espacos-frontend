@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { API_BASE_URL } from "../Service/localhost";
 import UserMenuDropdown from "./UserMenuDropdown";
 import Image from "next/image";
+import Swal from "sweetalert2";
 
 interface NavLinkProps {
   href: string;
@@ -68,7 +69,12 @@ export default function Navbar() {
 
         setInitials(ini);
       } catch (err) {
-        console.error("Erro ao carregar usuário:", err);
+        Swal.fire({
+          icon: "error",
+          title: "Erro ao carregar usuário",
+          text: err instanceof Error ? err.message : "Não foi possível carregar os dados.",
+          confirmButtonColor: "#2563eb", // azul bonito
+        });
       }
     };
 
